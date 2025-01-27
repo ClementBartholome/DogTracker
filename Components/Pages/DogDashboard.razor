@@ -1,7 +1,9 @@
 ﻿@page "/dog/{DogId:int}/dashboard"
 @using DogTracker.Interfaces
-@using DogTracker.Models
 @inject IDogService DogService
+@rendermode InteractiveServer
+
+
 
 <MudCard class="m-3">
     <MudText TextStyle="TextStyle.H5">Tableau de bord</MudText>
@@ -64,19 +66,3 @@
         </div>
     </div>
 </MudCard>
-
-@code {
-    [Parameter]
-    public int DogId { get; set; }
-
-    private List<Walk> recentWalks;
-    private List<WeightRecord> weightHistory;
-    private List<Expense> expenses;
-
-    protected override async Task OnInitializedAsync()
-    {
-        recentWalks = await DogService.GetRecentWalksAsync(DogId);
-        weightHistory = await DogService.GetWeightHistoryAsync(DogId);
-        expenses = await DogService.GetExpensesAsync(DogId, DateTime.Now.AddMonths(-1), DateTime.Now);
-    }
-}
