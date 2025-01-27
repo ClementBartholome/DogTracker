@@ -12,13 +12,18 @@ namespace DogTracker.Controllers
         {
             var connectionString = Environment.GetEnvironmentVariable("POSTGRESQLCONNSTR_prod");
 
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                return StatusCode(500, "La variable d'environnement POSTGRESQLCONNSTR_prod n'existe pas.");
+            }
+
             try
             {
                 using var connection = new NpgsqlConnection(connectionString);
                 connection.Open();
                 return Ok("Database connection successful");
             }
-            catch (Exception ex)
+            catch (NpgsqlException ex)
             {
                 return StatusCode(500, $"Database connection failed: {ex.Message}");
             }
