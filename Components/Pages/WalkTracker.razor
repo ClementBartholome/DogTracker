@@ -3,6 +3,7 @@
 @inject IDogService DogService
 @inject IJSRuntime JSRuntime
 @using DogTracker.Interfaces
+@using DogTracker.Models
 @rendermode InteractiveServer
 
 <div class="container mx-auto px-4">
@@ -39,13 +40,13 @@
         <div class="bg-white rounded-lg shadow p-4">
             <h2 class="text-xl font-bold mb-4">Historique des Promenades</h2>
             <div class="space-y-3">
-                @foreach (var walk in walkHistory.OrderByDescending(w => w.StartTime))
+                @foreach (var walk in walkHistory.OrderByDescending(w => w.StartTime).Select(w => new WalkViewModel(w)))
                 {
                     <div class="border-b pb-2">
-                        <p class="font-semibold">@walk.StartTime.ToString("dd/MM/yyyy HH:mm")</p>
+                        <p class="font-semibold">@walk.AdjustedStartTime.ToString("dd/MM/yyyy HH:mm")</p>
                         <div class="flex justify-between text-gray-600">
                             <span>@walk.Distance.ToString("F2") km</span>
-                            <span>@((walk.EndTime - walk.StartTime).TotalMinutes.ToString("F0")) min</span>
+                            <span>@((walk.AdjustedEndTime - walk.AdjustedStartTime).TotalMinutes.ToString("F0")) min</span>
                         </div>
                     </div>
                 }
