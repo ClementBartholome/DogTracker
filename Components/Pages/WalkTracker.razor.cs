@@ -24,13 +24,17 @@ namespace DogTracker.Components.Pages
         {
             try
             {
+                isLoading = true;
                 walkHistory = await DogService.GetRecentWalksAsync(DogId);
                 LocationService.OnPositionChanged += OnPositionChanged;
-                isLoading = false;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de l'initialisation: {ex.Message}");
+            }
+            finally
+            {
+                isLoading = false;
             }
         }
 
