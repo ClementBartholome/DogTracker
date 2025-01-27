@@ -12,7 +12,7 @@ namespace DogTracker.Components.Pages
 
         private bool isTracking = false;
         private DateTime? startTime;
-        private List<GeolocationPosition> positions = [];
+        private List<GeolocationPosition> positions = new();
         private double currentDistance = 0;
         private List<Walk> walkHistory;
         private Timer timer;
@@ -21,68 +21,103 @@ namespace DogTracker.Components.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            walkHistory = await DogService.GetRecentWalksAsync(DogId);
-            LocationService.OnPositionChanged += OnPositionChanged;
+            try
+            {
+                walkHistory = await DogService.GetRecentWalksAsync(DogId);
+                LocationService.OnPositionChanged += OnPositionChanged;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'initialisation: {ex.Message}");
+            }
         }
 
         private async Task StartWalk()
         {
-            isTracking = true;
-            startTime = DateTime.Now;
-            positions.Clear();
-            currentDistance = 0;
+            try
+            {
+                isTracking = true;
+                startTime = DateTime.Now;
+                positions.Clear();
+                currentDistance = 0;
 
-            await LocationService.StartWatchingPositionAsync();
+                await LocationService.StartWatchingPositionAsync();
 
-            timer = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, 0, 1000);
+                timer = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, 0, 1000);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du démarrage de la promenade: {ex.Message}");
+            }
         }
 
         private async Task StopWalk()
         {
             if (!isTracking) return;
 
-            await LocationService.StopWatchingPositionAsync();
-            timer?.Dispose();
-            isTracking = false;
-
-            var walk = new Walk
+            try
             {
-                StartTime = startTime.Value,
-                EndTime = DateTime.Now,
-                Distance = currentDistance,
-                Route = JsonSerializer.Serialize(positions)
-            };
+                await LocationService.StopWatchingPositionAsync();
+                timer?.Dispose();
+                isTracking = false;
 
-            await DogService.AddWalkAsync(DogId, walk);
-            walkHistory = await DogService.GetRecentWalksAsync(DogId);
+                var walk = new Walk
+                {
+                    StartTime = startTime.Value,
+                    EndTime = DateTime.Now,
+                    Distance = currentDistance,
+                    Route = JsonSerializer.Serialize(positions)
+                };
+
+                await DogService.AddWalkAsync(DogId, walk);
+                walkHistory = await DogService.GetRecentWalksAsync(DogId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'arrêt de la promenade: {ex.Message}");
+            }
         }
 
         private async void OnPositionChanged(object sender, GeolocationPosition position)
         {
             if (!isTracking) return;
 
-            if (positions.Count > 0)
+            try
             {
-                var lastPos = positions.Last();
-                currentDistance += CalculateDistance(
-                    lastPos.Latitude, lastPos.Longitude,
-                    position.Latitude, position.Longitude);
-            }
+                if (positions.Count > 0)
+                {
+                    var lastPos = positions.Last();
+                    currentDistance += CalculateDistance(
+                        lastPos.Latitude, lastPos.Longitude,
+                        position.Latitude, position.Longitude);
+                }
 
-            positions.Add(position);
-            await UpdateCurrentPositionMarker(position.Latitude, position.Longitude);
-            InvokeAsync(StateHasChanged);
+                positions.Add(position);
+                await UpdateCurrentPositionMarker(position.Latitude, position.Longitude);
+                InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la mise à jour de la position: {ex.Message}");
+            }
         }
 
         private async Task UpdateCurrentPositionMarker(double lat, double lng)
         {
-            if (currentPositionMarker == null)
+            try
             {
-                currentPositionMarker = await JSRuntime.InvokeAsync<IJSObjectReference>("addCurrentPositionMarker", lat, lng);
+                if (currentPositionMarker == null)
+                {
+                    currentPositionMarker = await JSRuntime.InvokeAsync<IJSObjectReference>("addCurrentPositionMarker", lat, lng);
+                }
+                else
+                {
+                    await currentPositionMarker.InvokeVoidAsync("setLatLng", lat, lng);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await currentPositionMarker.InvokeVoidAsync("setLatLng", lat, lng);
+                Console.WriteLine($"Erreur lors de la mise à jour du marqueur de position: {ex.Message}");
             }
         }
 
@@ -126,7 +161,7 @@ namespace DogTracker.Components.Pages
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Map loading error: {ex.Message}");
+                    Console.WriteLine($"Erreur lors du chargement de la carte: {ex.Message}");
                 }
             }
         }
@@ -135,7 +170,14 @@ namespace DogTracker.Components.Pages
         {
             if (module != null)
             {
-                await module.DisposeAsync();
+                try
+                {
+                    await module.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors de la libération des ressources: {ex.Message}");
+                }
             }
         }
     }
