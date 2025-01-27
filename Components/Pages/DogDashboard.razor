@@ -1,0 +1,82 @@
+﻿@page "/dog/{DogId:int}/dashboard"
+@using DogTracker.Interfaces
+@using DogTracker.Models
+@inject IDogService DogService
+
+<MudCard class="m-3">
+    <MudText TextStyle="TextStyle.H5">Tableau de bord</MudText>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <MudCard>
+                <MudText TextStyle="TextStyle.Subtitle2">Dernière promenade</MudText>
+                @if (recentWalks?.Any() == true)
+                {
+                    var lastWalk = recentWalks.First();
+                    <div class="mt-2">
+                        <div>Date: @lastWalk.StartTime.ToString("dd/MM HH:mm")</div>
+                        <div>Distance: @lastWalk.Distance.ToString("F2") km</div>
+                        <div>Durée: @((lastWalk.EndTime - lastWalk.StartTime).TotalMinutes.ToString("F0")) min</div>
+                    </div>
+                }
+                else
+                {
+                    <div>Aucune promenade enregistrée</div>
+                }
+            </MudCard>
+        </div>
+
+        <div class="col-md-4">
+            <MudCard>
+                <MudText TextStyle="TextStyle.Subtitle2">Poids actuel</MudText>
+                @if (weightHistory?.Any() == true)
+                {
+                    var currentWeight = weightHistory.OrderByDescending(w => w.Date).First();
+                    <div class="mt-2">
+                        <div class="h4">@currentWeight.Weight kg</div>
+                        <div>Dernière mesure: @currentWeight.Date.ToString("dd/MM/yyyy")</div>
+                    </div>
+                }
+                else
+                {
+                    <div>Aucun poids enregistré</div>
+                }
+            </MudCard>
+        </div>
+
+        <div class="col-md-4">
+            <MudCard>
+                <MudText TextStyle="TextStyle.Subtitle2">Dépenses du mois</MudText>
+                @if (expenses?.Any() == true)
+                {
+                    var monthlyTotal = expenses
+                        .Where(e => e.Date.Month == DateTime.Now.Month)
+                        .Sum(e => e.Amount);
+                    <div class="mt-2">
+                        <div class="h4">@monthlyTotal.ToString("C")</div>
+                    </div>
+                }
+                else
+                {
+                    <div>Aucune dépense enregistrée</div>
+                }
+            </MudCard>
+        </div>
+    </div>
+</MudCard>
+
+@code {
+    [Parameter]
+    public int DogId { get; set; }
+
+    private List<Walk> recentWalks;
+    private List<WeightRecord> weightHistory;
+    private List<Expense> expenses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        recentWalks = await DogService.GetRecentWalksAsync(DogId);
+        weightHistory = await DogService.GetWeightHistoryAsync(DogId);
+        expenses = await DogService.GetExpensesAsync(DogId, DateTime.Now.AddMonths(-1), DateTime.Now);
+    }
+}

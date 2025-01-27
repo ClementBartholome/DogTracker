@@ -1,0 +1,23 @@
+﻿@page "/walk/{WalkId:int}/map"
+
+<RealTimeMap Parameters="parameters" Height="460px" Width="620px"></RealTimeMap>
+
+@code {
+    [Parameter]
+    public int WalkId { get; set; }
+
+    private RealTimeMap.LoadParameters parameters;
+
+    protected override void OnInitialized()
+    {
+        parameters = new RealTimeMap.LoadParameters
+        {
+            location = new RealTimeMap.Location
+            {
+                latitude = 44.4501715,
+                longitude = 26.1107672
+            },
+            zoomLevel = 18
+        };
+    }
+}

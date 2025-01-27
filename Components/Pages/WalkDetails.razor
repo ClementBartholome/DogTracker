@@ -1,0 +1,12 @@
+﻿@page "/walk/{WalkId:int}"
+@using DogTracker.Models
+
+<MudCard class="m-3">
+    <MudText TextStyle="TextStyle.H5">Détails de la promenade</MudText>
+    <WalkMap WalkId="WalkId" />
+</MudCard>
+
+@code {
+    [Parameter]
+    public int WalkId { get; set; }
+}
