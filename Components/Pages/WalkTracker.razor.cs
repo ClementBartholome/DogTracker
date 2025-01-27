@@ -84,25 +84,32 @@ namespace DogTracker.Components.Pages
 
         private async void OnPositionChanged(object sender, GeolocationPosition position)
         {
-            if (!isTracking) return;
-
             try
             {
-                if (positions.Count > 0)
-                {
-                    var lastPos = positions.Last();
-                    currentDistance += CalculateDistance(
-                        lastPos.Latitude, lastPos.Longitude,
-                        position.Latitude, position.Longitude);
-                }
+                if (!isTracking) return;
 
-                positions.Add(position);
-                await UpdateCurrentPositionMarker(position.Latitude, position.Longitude);
-                InvokeAsync(StateHasChanged);
+                try
+                {
+                    if (positions.Count > 0)
+                    {
+                        var lastPos = positions.Last();
+                        currentDistance += CalculateDistance(
+                            lastPos.Latitude, lastPos.Longitude,
+                            position.Latitude, position.Longitude);
+                    }
+
+                    positions.Add(position);
+                    await UpdateCurrentPositionMarker(position.Latitude, position.Longitude);
+                    await InvokeAsync(StateHasChanged);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors de la mise à jour de la position: {ex.Message}");
+                }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine($"Erreur lors de la mise à jour de la position: {ex.Message}");
+                Console.WriteLine($"Erreur lors de la réception de la position: {e.Message}");
             }
         }
 
