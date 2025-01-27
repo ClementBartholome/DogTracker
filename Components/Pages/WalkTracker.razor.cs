@@ -11,6 +11,7 @@ namespace DogTracker.Components.Pages
         [Parameter] public int DogId { get; set; }
 
         private bool isTracking = false;
+        private bool isLoading = true;
         private DateTime? startTime;
         private List<GeolocationPosition> positions = new();
         private double currentDistance = 0;
@@ -25,6 +26,7 @@ namespace DogTracker.Components.Pages
             {
                 walkHistory = await DogService.GetRecentWalksAsync(DogId);
                 LocationService.OnPositionChanged += OnPositionChanged;
+                isLoading = false;
             }
             catch (Exception ex)
             {
@@ -57,6 +59,7 @@ namespace DogTracker.Components.Pages
 
             try
             {
+                isLoading = true;
                 await LocationService.StopWatchingPositionAsync();
                 timer?.Dispose();
                 isTracking = false;
@@ -71,6 +74,7 @@ namespace DogTracker.Components.Pages
 
                 await DogService.AddWalkAsync(DogId, walk);
                 walkHistory = await DogService.GetRecentWalksAsync(DogId);
+                isLoading = false;
             }
             catch (Exception ex)
             {

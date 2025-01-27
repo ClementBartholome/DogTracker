@@ -35,22 +35,36 @@
 
     <div id="map" style="height: 600px;" class="mb-4 rounded-lg w-100"></div>
 
-    @if (walkHistory?.Any() == true)
+    @if (isLoading)
     {
-        <div class="bg-white rounded-lg shadow p-4">
-            <h2 class="text-xl font-bold mb-4">Historique des Promenades</h2>
-            <div class="space-y-3">
-                @foreach (var walk in walkHistory.OrderByDescending(w => w.StartTime).Select(w => new WalkViewModel(w)))
-                {
-                    <div class="border-b pb-2">
-                        <p class="font-semibold">@walk.AdjustedStartTime.ToString("dd/MM/yyyy HH:mm")</p>
-                        <div class="flex justify-between text-gray-600">
-                            <span>@walk.Distance.ToString("F2") km</span>
-                            <span>@((walk.AdjustedEndTime - walk.AdjustedStartTime).TotalMinutes.ToString("F0")) min</span>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
+    }
+    else
+    {
+        @if (walkHistory?.Any() == true)
+        {
+            <MudPaper Class="p-4 mb-4">
+                <MudText Typo="Typo.h6" Class="mb-4">Historique des Promenades</MudText>
+                <MudList T="object">
+                    @foreach (var walk in walkHistory.OrderByDescending(w => w.StartTime).Select(w => new WalkViewModel(w)))
+                    {
+                        <MudListItem>
+                            <MudText
+                                Typo="Typo.subtitle1">@walk.AdjustedStartTime.ToString("dd/MM/yyyy HH\\hmm")</MudText>
+                            <MudText Typo="Typo.body2" Class="text-gray-600">
+                                <span>@walk.Distance.ToString("F2") km</span>
+                                <span>@((walk.AdjustedEndTime - walk.AdjustedStartTime).TotalMinutes.ToString("F0")) min</span>
+                            </MudText>
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudPaper>
+        }
+        else
+        {
+            <MudPaper Class="p-4">
+                <MudText Typo="Typo.body1" Class="text-gray-600">Aucune promenade enregistrée.</MudText>
+            </MudPaper>
+        }
     }
 </div>
