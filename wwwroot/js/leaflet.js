@@ -25,8 +25,8 @@
     });
 
     loadMarkers(map, customIcon);
+    loadMarkersFromJson(map, customIcon);
 
-    // On garde une référence au marqueur de position
     let locationMarker = null;
 
     map.locate({setView: true, maxZoom: 16});
@@ -47,6 +47,29 @@
     return map;
 }
 
+async function loadMarkersFromJson(map, icon) {
+    const response = await fetch('/json/opendata_sac_canin.json');
+    const data = await response.json();
+
+    data.forEach(item => {
+        console.log(item)
+        const coordinates = item.fields.coordinates;
+        const emplacement = item.fields.emplacement;
+        console.log(emplacement)
+        if (coordinates && coordinates.length === 2) {
+            const [lng, lat] = coordinates;
+            let marker = L.marker([lat, lng], {icon}).addTo(map)
+                .bindPopup(getCustomPopupContent(lat, lng, emplacement));
+            marker.on('popupopen', function () {
+                document.getElementById(`delete-marker-${lat}-${lng}`).addEventListener('click', function () {
+                    map.removeLayer(marker);
+                    removeMarker(lat, lng);
+                });
+            });
+        }
+    });
+}
+
 export function addCurrentPositionMarker(lat, lng) {
     const map = window.currentMap;
     const marker = window.currentLocationMarker;
@@ -64,8 +87,8 @@ export function addCurrentPositionMarker(lat, lng) {
     };
 }
 
-function getCustomPopupContent(lat, lng) {
-    return `<br><button id="delete-marker-${lat}-${lng}">Supprimer</button>`;
+function getCustomPopupContent(lat, lng, emplacement = '') {
+    return `<div>${emplacement}</div><br><button id="delete-marker-${lat}-${lng}">Supprimer</button>`;
 }
 
 function saveMarker(lat, lng) {
