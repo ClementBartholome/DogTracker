@@ -10,8 +10,8 @@ namespace DogTracker.Components.Pages
     {
         [Parameter] public int DogId { get; set; }
 
-        private bool isTracking = false;
-        private bool isLoading = true;
+        private bool isTracking;
+        private bool isLoading;
         private DateTime? startTime;
         private List<GeolocationPosition> positions = new();
         private double currentDistance = 0;
