@@ -26,6 +26,7 @@ namespace DogTracker.Components.Pages
             {
                 isLoading = true;
                 walkHistory = await DogService.GetRecentWalksAsync(DogId);
+                isLoading = false;
                 LocationService.OnPositionChanged += OnPositionChanged;
             }
             catch (Exception ex)
