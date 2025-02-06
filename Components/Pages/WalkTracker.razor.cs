@@ -124,11 +124,16 @@ namespace DogTracker.Components.Pages
                 isLoading = true;
                 await DogService.DeleteWalkAsync(dogId, walkId);
                 walkHistory = await DogService.GetRecentWalksAsync(dogId);
-                isLoading = false;
             }
             catch (Exception ex)
             {
+                // TODO : afficher une notification d'erreur
                 Console.WriteLine($"Erreur lors de la suppression de la promenade: {ex.Message}");
+            }
+            finally
+            {
+                isLoading = false;
+                StateHasChanged(); // Force le rafraîchissement
             }
         }
 
