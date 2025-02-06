@@ -1,5 +1,5 @@
 ﻿@page "/"
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 @implements IAsyncDisposable
 
 <PageTitle>Home</PageTitle>
@@ -15,7 +15,7 @@
         {
             try 
             {
-                await JSRuntime.InvokeVoidAsync("load_map");
+                await JsRuntime.InvokeVoidAsync("load_map");
 
             }
             catch (Exception ex)
