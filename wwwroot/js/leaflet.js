@@ -52,10 +52,8 @@ async function loadMarkersFromJson(map, icon) {
     const data = await response.json();
 
     data.forEach(item => {
-        console.log(item)
         const coordinates = item.fields.coordinates;
         const emplacement = item.fields.emplacement;
-        console.log(emplacement)
         if (coordinates && coordinates.length === 2) {
             const [lng, lat] = coordinates;
             let marker = L.marker([lat, lng], {icon}).addTo(map)
