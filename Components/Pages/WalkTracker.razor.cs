@@ -86,6 +86,21 @@ namespace DogTracker.Components.Pages
             }
         }
 
+        private async Task DeleteWalk(int dogId, int walkId)
+        {
+            try
+            {
+                isLoading = true;
+                await DogService.DeleteWalkAsync(dogId, walkId);
+                walkHistory = await DogService.GetRecentWalksAsync(dogId);
+                isLoading = false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de la suppression de la promenade: {ex.Message}");
+            }
+        }
+
         private async void OnPositionChanged(object sender, GeolocationPosition position)
         {
             try
@@ -123,7 +138,7 @@ namespace DogTracker.Components.Pages
             {
                 if (currentPositionMarker == null)
                 {
-                    currentPositionMarker = await JSRuntime.InvokeAsync<IJSObjectReference>("addCurrentPositionMarker", lat, lng);
+                    currentPositionMarker = await JsRuntime.InvokeAsync<IJSObjectReference>("addCurrentPositionMarker", lat, lng);
                 }
                 else
                 {
@@ -172,7 +187,7 @@ namespace DogTracker.Components.Pages
             {
                 try
                 {
-                    await JSRuntime.InvokeVoidAsync("load_map");
+                    await JsRuntime.InvokeVoidAsync("load_map");
                 }
                 catch (Exception ex)
                 {
