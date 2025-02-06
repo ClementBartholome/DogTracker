@@ -4,7 +4,7 @@ namespace DogTracker.Interfaces;
 
 public interface IDogService
 {
-    Task<List<Walk>> GetRecentWalksAsync(int dogId);
+    Task<List<Walk?>> GetRecentWalksAsync(int dogId);
     Task AddWalkAsync(int dogId, Walk? walk);
     Task<List<WeightRecord>> GetWeightHistoryAsync(int dogId);
     Task AddWeightRecordAsync(int dogId, WeightRecord weight);

@@ -15,7 +15,7 @@ namespace DogTracker.Components.Pages
         private DateTime? startTime;
         private List<GeolocationPosition> positions = new();
         private double currentDistance = 0;
-        private List<Walk> walkHistory;
+        private List<Walk?> walkHistory;
         private Timer timer;
         private IJSObjectReference? module;
         private IJSObjectReference? currentPositionMarker;
@@ -101,7 +101,7 @@ namespace DogTracker.Components.Pages
 
                 var walk = new Walk
                 {
-                    StartTime = startTime.Value,
+                    StartTime = startTime!.Value,
                     EndTime = DateTime.Now,
                     Distance = currentDistance,
                     Route = JsonSerializer.Serialize(positions)
