@@ -1,37 +1,38 @@
 ﻿@page "/dog/{DogId:int}/walk"
 @inject ILocationService LocationService
 @inject IDogService DogService
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 @using DogTracker.Interfaces
 @using DogTracker.Models
+@using DogTracker.ViewModels
 @rendermode InteractiveServer
 
 <div class="mx-auto">
-    <div class="bg-white rounded-lg shadow p-4 mb-4">
-        <h1 class="text-2xl font-bold mb-4">Suivi de promenade</h1>
+    <MudPaper class="p-4 mb-4">
+            <MudText Typo="Typo.h4" class="mb-2">Promenades</MudText>
 
-        @if (!isTracking)
-        {
-            <MudButton OnClick="StartWalk" Color="Color.Primary" Variant="Variant.Filled"
-                       class="w-full text-white font-bold py-3 rounded-lg mb-4">
-                Démarrer la promenade
-            </MudButton>
-        }
-        else
-        {
-            <div class="space-y-4">
-                <div class="text-center">
-                    <p class="text-xl">Durée: @GetFormattedDuration()</p>
-                    <p class="text-lg">Distance: @(currentDistance.ToString("F2")) km</p>
-                </div>
-
-                <MudButton OnClick="StopWalk" Color="Color.Primary" Variant="Variant.Filled"
-                           class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg">
-                    Terminer la promenade
+            @if (!isTracking)
+            {
+                <MudButton OnClick="StartWalk" Color="Color.Primary" Variant="Variant.Filled"
+                           class="w-full text-white font-bold py-3 rounded-lg mb-4">
+                    Démarrer la promenade
                 </MudButton>
-            </div>
-        }
-    </div>
+            }
+            else
+            {
+                <div class="space-y-4">
+                    <div class="text-center">
+                        <p class="text-xl">Durée: @GetFormattedDuration()</p>
+                        <p class="text-lg">Distance: @(currentDistance.ToString("F2")) km</p>
+                    </div>
+
+                    <MudButton OnClick="StopWalk" Color="Color.Primary" Variant="Variant.Filled"
+                               class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg">
+                        Terminer la promenade
+                    </MudButton>
+                </div>
+            }
+    </MudPaper>
 
     <div id="map" style="height: 300px;" class="mb-4 rounded-lg w-100"></div>
 
@@ -49,8 +50,20 @@
                     @foreach (var walk in walkHistory.OrderByDescending(w => w.StartTime).Select(w => new WalkViewModel(w)))
                     {
                         <MudListItem>
-                            <MudText
-                                Typo="Typo.subtitle1">@walk.AdjustedStartTime.ToString("dd/MM/yyyy HH\\hmm")</MudText>
+                            <div class="d-flex">
+                                <MudText
+                                    Typo="Typo.subtitle1">@walk.AdjustedStartTime.ToString("dd/MM/yyyy HH\\hmm")
+                                </MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete"
+                                               Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                               class="ml-auto"
+                                               OnClick="@(() => DeleteWalk(1, walk.Id))"/>
+                                <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" aria-label="more"
+                                               Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                               class="ml-2"
+                                               Href="@($"/walk/{walk.Id}")"/>
+
+                            </div>
                             <MudText Typo="Typo.body2" Class="text-gray-600">
                                 <span>@walk.Distance.ToString("F2") km</span>
                                 <span>@((walk.AdjustedEndTime - walk.AdjustedStartTime).TotalMinutes.ToString("F0")) min</span>
