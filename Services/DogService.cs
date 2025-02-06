@@ -167,6 +167,36 @@ public class DogService : IDogService
         }
     }
     
+    public async Task DeleteWalkAsync(int dogId, int walkId)
+    {
+        try
+        {
+            var walk = await _context.Walks.FindAsync(walkId);
+            if (walk == null)
+            {
+                throw new ApplicationException("Impossible de trouver la promenade.");
+            }
+
+            if (walk.DogId != dogId)
+            {
+                throw new ApplicationException("Impossible de supprimer la promenade.");
+            }
+
+            _context.Walks.Remove(walk);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Erreur lors de la suppression de la promenade {WalkId} pour le chien {DogId}", walkId, dogId);
+            throw new ApplicationException("Impossible de supprimer la promenade.", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erreur inattendue lors de la suppression de la promenade {WalkId} pour le chien {DogId}", walkId, dogId);
+            throw new ApplicationException("Une erreur est survenue lors de la suppression de la promenade.", ex);
+        }
+    }
+    
     public async Task<Walk?> GetWalkByIdAsync(int walkId)
     {
         try

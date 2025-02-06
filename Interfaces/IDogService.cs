@@ -11,4 +11,7 @@ public interface IDogService
     Task<List<Expense>> GetExpensesAsync(int dogId, DateTime startDate, DateTime endDate);
     Task AddExpenseAsync(int dogId, Expense expense);
     Task AddDogAsync(Dog dog);
+    // Delete walk
+    Task DeleteWalkAsync(int dogId, int walkId);
+    
 }
