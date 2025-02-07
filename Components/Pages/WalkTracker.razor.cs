@@ -2,6 +2,7 @@
 using DogTracker.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MudBlazor;
 using Timer = System.Threading.Timer;
 
 namespace DogTracker.Components.Pages
@@ -21,6 +22,7 @@ namespace DogTracker.Components.Pages
         private IJSObjectReference? currentPositionMarker;
         
         [Inject] PersistentComponentState ApplicationState { get; set; }
+        [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
 
         protected override async Task OnInitializedAsync()
@@ -79,6 +81,8 @@ namespace DogTracker.Components.Pages
                 currentDistance = 0;
 
                 await LocationService.StartWatchingPositionAsync();
+                
+                Snackbar.Add("Promenade lancée !", Severity.Success);
 
                 timer = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, 0, 1000);
             }
@@ -110,6 +114,7 @@ namespace DogTracker.Components.Pages
                 await DogService.AddWalkAsync(DogId, walk);
                 walkHistory = await DogService.GetRecentWalksAsync(DogId);
                 isLoading = false;
+                Snackbar.Add("Promenade enregistrée !", Severity.Success);
             }
             catch (Exception ex)
             {
@@ -124,10 +129,11 @@ namespace DogTracker.Components.Pages
                 isLoading = true;
                 await DogService.DeleteWalkAsync(dogId, walkId);
                 walkHistory = await DogService.GetRecentWalksAsync(dogId);
+                Snackbar.Add("Promenade supprimée !", Severity.Success);
             }
             catch (Exception ex)
             {
-                // TODO : afficher une notification d'erreur
+                Snackbar.Add("Erreur lors de la suppression de la promenade", Severity.Error);
                 Console.WriteLine($"Erreur lors de la suppression de la promenade: {ex.Message}");
             }
             finally
@@ -206,14 +212,14 @@ namespace DogTracker.Components.Pages
             return R * c;
         }
 
-        private double ToRad(double degree)
+        private static double ToRad(double degree)
         {
             return degree * Math.PI / 180;
         }
 
         public void Dispose()
         {
-            LocationService.OnPositionChanged -= OnPositionChanged;
+            LocationService.OnPositionChanged -= OnPositionChanged!;
             timer?.Dispose();
         }
 
