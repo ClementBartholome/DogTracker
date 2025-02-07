@@ -6,18 +6,38 @@ namespace DogTracker.Components.Pages
 {
     public partial class DogDashboard
     {
-        [Parameter] public int DogId { get; set; }
+        [Parameter] public int DogId { get; set; } = 1;
         
-        private List<Walk> recentWalks = new();
-        private List<WeightRecord> weightHistory = new();
-        private List<Expense> expenses = new();
-
+        private List<Walk?> _recentWalks = [];
+        private List<WeightRecord> _weightHistory = [];
+        private List<Expense> _expenses = [];
+        private double _totalDurationToday;
+        private double _totalDistanceToday;
+        private int _totalWalksToday;
+        private bool isLoading = false;
 
         protected override async Task OnInitializedAsync()
         {
-            recentWalks = await DogService.GetRecentWalksAsync(DogId);
-            weightHistory = await DogService.GetWeightHistoryAsync(DogId);
-            expenses = await DogService.GetExpensesAsync(DogId, DateTime.Now.AddMonths(-1), DateTime.Now);
+            isLoading = true;
+            _recentWalks = await DogService.GetRecentWalksAsync(DogId);
+            _weightHistory = await DogService.GetWeightHistoryAsync(DogId);
+            _expenses = await DogService.GetExpensesAsync(DogId, DateTime.Now.AddMonths(-1), DateTime.Now);
+            CalculateTodayStats();
+            isLoading = false;
+        }
+        
+        private void CalculateTodayStats()
+        {
+            var todayWalks = _recentWalks.Where(w => w.StartTime.Date == DateTime.Today).ToList();
+            
+            if (todayWalks.Count == 0)
+            {
+                return;
+            }
+            
+            _totalDurationToday = todayWalks.Sum(w => (w.EndTime - w.StartTime).TotalMinutes);
+            _totalDistanceToday = todayWalks.Sum(w => w.Distance);
+            _totalWalksToday = todayWalks.Count;
         }
     }
 }

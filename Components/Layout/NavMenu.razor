@@ -1,14 +1,14 @@
 ﻿<MudPaper>
     <MudNavMenu>
         <MudDivider />
+        @* <MudNavLink Href="" Match="NavLinkMatch.All"> *@
+        @*     <MudIcon Icon="@Icons.Material.Filled.Home" /> Accueil *@
+        @* </MudNavLink> *@
         <MudNavLink Href="" Match="NavLinkMatch.All">
-            <MudIcon Icon="@Icons.Material.Filled.Home" /> Accueil
-        </MudNavLink>
-        <MudNavLink Href="@($"dog/{currentDogId}/dashboard")">
             <MudIcon Icon="@Icons.Material.Filled.Dashboard" /> Tableau de bord
         </MudNavLink>
-        <MudNavLink Href="@($"dog/{currentDogId}/walk")">
-            <MudIcon Icon="@Icons.Material.Filled.Explore" /> Promenade
+        <MudNavLink Href="@($"dog/{_currentDogId}/walk")">
+            <MudIcon Icon="fas fa-dog" /> Promenade
         </MudNavLink>
         @* <MudNavLink Href="@($"dog/{currentDogId}/expenses")">
             <MudIcon Icon="@Icons.Material.Filled.Wallet" /> Dépenses
@@ -23,5 +23,5 @@
 </MudPaper>
 
 @code {
-    private int currentDogId = 1;
+    private int _currentDogId = 1;
 }

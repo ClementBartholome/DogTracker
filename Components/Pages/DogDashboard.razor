@@ -1,70 +1,118 @@
-﻿@page "/dog/{DogId:int}/dashboard"
+﻿@page "/"
 @using DogTracker.Interfaces
 @inject IDogService DogService
 @rendermode InteractiveServer
 
+<MudText Typo="Typo.h5" Class="pl-3 pt-3">Tableau de bord</MudText>
+<MudGrid Class="mt-2">
+    <MudItem xs="12" md="3">
+        <MudCard Class="p-3">
+            <MudText Typo="Typo.subtitle1">Récap des promenades aujourd'hui</MudText>
+            @if (isLoading)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
+            }
+            else if (!_recentWalks.Any())
+            {
+                <MudText Typo="Typo.body1">Aucune promenade enregistrée aujourd'hui</MudText>
+            }
+            else
+            {
+                <div class="d-flex justify-content-around mt-2">
+                    <div class="mt-2 d-flex flex-column align-items-center">
+                        <MudText Typo="Typo.body1" Class="fw-bold">@_totalDurationToday.ToString("F2") min</MudText>
+                        <MudText Typo="Typo.caption">Durée</MudText>
+                    </div>
+                    <div class="mt-2 d-flex flex-column align-items-center">
+                        <MudText Typo="Typo.body1" Class="fw-bold">@_totalDistanceToday.ToString("F2") km</MudText>
+                        <MudText Typo="Typo.caption">Distance</MudText>
+                    </div>
+                    <div class="mt-2 d-flex flex-column align-items-center">
+                        <MudText Typo="Typo.body1" Class="fw-bold">@_totalWalksToday</MudText>
+                        <MudText Typo="Typo.caption">Promenades</MudText>
+                    </div>
+                </div>
+            }
+        </MudCard>
+    </MudItem>
 
+    <MudItem xs="12" md="3">
+        <MudCard Class="p-3">
+            <MudText Typo="Typo.subtitle1">Dernière promenade</MudText>
+            @if (isLoading)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
+            }
+            else if (!_recentWalks.Any())
+            {
+                <MudText Typo="Typo.body1">Aucune promenade enregistrée</MudText>
+            }
+            else
+            {
+                var lastWalk = _recentWalks.First();
+                <div class="mt-2 d-flex flex-column gap-2 pl-4">
+                    <MudText Typo="Typo.body1">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Class="mr-1" />
+                        @lastWalk.StartTime.ToString("dd/MM/yyyy à HH\\hmm")
+                    </MudText>
+                    <MudText Typo="Typo.body1">
+                        <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" Class="mr-1" />
+                        @lastWalk.Distance.ToString("F2") km
+                    </MudText>
+                    <MudText Typo="Typo.body1">
+                        <MudIcon Icon="@Icons.Material.Filled.Timer" Class="mr-1" />
+                        @((lastWalk.EndTime - lastWalk.StartTime).TotalMinutes.ToString("F2")) min
+                    </MudText>
+                </div>
+            }
+        </MudCard>
+    </MudItem>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-    <MudCard Class="m-3 p-3">
-        <MudText Typo="Typo.h5">Tableau de bord</MudText>
+    <MudItem xs="12" md="3">
+        <MudCard Class="p-3">
+            <MudText Typo="Typo.subtitle1">Poids actuel</MudText>
+            @if (isLoading)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="60px"/>
+            }
+            else if (!_weightHistory.Any())
+            {
+                <MudText Typo="Typo.body1" Class="pl-4">Aucun poids enregistré</MudText>
+            }
+            else
+            {
+                var currentWeight = _weightHistory.OrderByDescending(w => w.Date).First();
+                <div class="mt-2 pl-4">
+                    <MudText Typo="Typo.body1">
+                        <MudIcon Icon="@Icons.Material.Filled.Scale" Class="mr-1" />
+                        @currentWeight.Weight kg
+                    </MudText>
+                    <MudText Typo="Typo.body1">Dernière mesure prise le @currentWeight.Date.ToString("dd/MM/yyyy")</MudText>
+                </div>
+            }
+        </MudCard>
+    </MudItem>
 
-        <MudGrid Class="mt-4">
-            <MudItem xs="12" md="4">
-                <MudCard Class="p-3">
-                    <MudText Typo="Typo.subtitle2">Dernière promenade</MudText>
-                    @if (recentWalks?.Any() == true)
-                    {
-                        var lastWalk = recentWalks.First();
-                        <div class="mt-2">
-                            <MudText Typo="Typo.body1">Date: @lastWalk.StartTime.ToString("dd/MM HH:mm")</MudText>
-                            <MudText Typo="Typo.body1">Distance: @lastWalk.Distance.ToString("F2") km</MudText>
-                            <MudText Typo="Typo.body1">Durée: @((lastWalk.EndTime - lastWalk.StartTime).TotalMinutes.ToString("F0")) min</MudText>
-                        </div>
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.body1">Aucune promenade enregistrée</MudText>
-                    }
-                </MudCard>
-            </MudItem>
-
-            <MudItem xs="12" md="4">
-                <MudCard Class="p-3">
-                    <MudText Typo="Typo.subtitle2">Poids actuel</MudText>
-                    @if (weightHistory?.Any() == true)
-                    {
-                        var currentWeight = weightHistory.OrderByDescending(w => w.Date).First();
-                        <div class="mt-2">
-                            <MudText Typo="Typo.h4">@currentWeight.Weight kg</MudText>
-                            <MudText Typo="Typo.body1">Dernière mesure: @currentWeight.Date.ToString("dd/MM/yyyy")</MudText>
-                        </div>
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.body1">Aucun poids enregistré</MudText>
-                    }
-                </MudCard>
-            </MudItem>
-
-            <MudItem xs="12" md="4">
-                <MudCard Class="p-3">
-                    <MudText Typo="Typo.subtitle2">Dépenses du mois</MudText>
-                    @if (expenses?.Any() == true)
-                    {
-                        var monthlyTotal = expenses
-                            .Where(e => e.Date.Month == DateTime.Now.Month)
-                            .Sum(e => e.Amount);
-                        <div class="mt-2">
-                            <MudText Typo="Typo.h4">@monthlyTotal.ToString("C")</MudText>
-                        </div>
-                    }
-                    else
-                    {
-                        <MudText Typo="Typo.body1">Aucune dépense enregistrée</MudText>
-                    }
-                </MudCard>
-            </MudItem>
-        </MudGrid>
-    </MudCard>
-</MudContainer>
+    <MudItem xs="12" md="3">
+        <MudCard Class="p-3">
+            <MudText Typo="Typo.subtitle1">Dépenses du mois</MudText>
+            @if (isLoading)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="60px"/>
+            }
+            else if (!_expenses.Any())
+            {
+                <MudText Typo="Typo.body1" Class="pl-4">Aucune dépense enregistrée</MudText>
+            }
+            else
+            {
+                var monthlyTotal = _expenses
+                    .Where(e => e.Date.Month == DateTime.Now.Month)
+                    .Sum(e => e.Amount);
+                <div class="mt-2">
+                    <MudText Typo="Typo.body1">@monthlyTotal.ToString("C")</MudText>
+                </div>
+            }
+        </MudCard>
+    </MudItem>
+</MudGrid>
