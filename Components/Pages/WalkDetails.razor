@@ -1,12 +1,38 @@
 ﻿@page "/walk/{WalkId:int}"
-@using DogTracker.Models
+@using DogTracker.ViewModels
 
-<MudCard class="m-3">
+<MudCard class="m-3 p-4">
     <MudText TextStyle="TextStyle.H5">Détails de la promenade</MudText>
-    <WalkMap WalkId="WalkId" />
+    @if (Walk != null)
+    {
+        <MudText Typo="Typo.subtitle1">
+            <MudIcon Icon="@Icons.Material.Filled.CalendarToday" class="mr-1" />
+            Date: @Walk.AdjustedStartTime.ToString("dd/MM/yyyy HH\\hmm")
+        </MudText>
+        <MudText Typo="Typo.body2" Class="text-gray-600">
+            <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" class="mr-1" />
+            Distance: @Walk.Distance.ToString("F2") km
+        </MudText>
+        <MudText Typo="Typo.body2" Class="text-gray-600">
+            <MudIcon Icon="@Icons.Material.Filled.Timer" class="mr-1" />
+            Durée: @((Walk.AdjustedEndTime - Walk.AdjustedStartTime).TotalMinutes.ToString("F0")) min
+        </MudText>
+        <MudText Typo="Typo.body2" Class="text-gray-600">
+            <MudIcon Icon="@Icons.Material.Filled.Notes" class="mr-1" />
+            Notes: @Walk.Notes
+        </MudText>
+        <WalkMap WalkId="WalkId" />
+    }
+    else
+    {
+        <MudText Typo="Typo.body1" Class="text-gray-600">Chargement des détails de la promenade...</MudText>
+    }
 </MudCard>
 
 @code {
+    [Parameter]
+    public WalkViewModel? Walk { get; set; }
+
     [Parameter]
     public int WalkId { get; set; }
 }
