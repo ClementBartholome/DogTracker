@@ -1,16 +1,16 @@
 ﻿@page "/dog/{DogId:int}/walk"
 @inject ILocationService LocationService
 @inject IDogService DogService
+@inject IWalkService WalkService
 @inject IJSRuntime JsRuntime
 @using DogTracker.Interfaces
 @using DogTracker.Models
 @using DogTracker.ViewModels
 @rendermode InteractiveServer
 
-<div class="mx-auto">
     <MudPaper class="p-4 mb-4">
         <MudText Typo="Typo.h4" class="mb-4">
-            <MudIcon Icon="fas fa-dog" Size="Size.Large" class="mr-2"/>
+            <MudIcon Icon="@Icons.Material.Filled.Pets" Size="Size.Large" class="mr-2"/>
             Promenades
         </MudText>
         @if (!isTracking)
@@ -44,10 +44,20 @@
     }
     else
     {
-        @if (walkHistory?.Any() == true)
-        {
-            <MudPaper Class="p-4 mb-4">
-                <MudText Typo="Typo.h6" Class="mb-4">Historique des Promenades</MudText>
+        <MudPaper Class="p-4 mb-4">
+            <MudText Typo="Typo.h6">Historique des Promenades</MudText>
+            <MudDatePicker OpenTo="OpenTo.Month"
+                           FixYear="DateTime.Now.Year"
+                           FixDay="1"
+                           DateFormat="MMM/yy"
+                           Class="mb-4"
+                           ShowToolbar="false"
+                           AutoClose="true"
+                           DateChanged="OnMonthChanged"
+                           Date="@_selectedMonth"
+            />
+            @if (walkHistory?.Any() == true)
+            {
                 <MudList T="object">
                     @foreach (var walk in walkHistory.OrderByDescending(w => w.StartTime).Select(w => new WalkViewModel(w)))
                     {
@@ -65,7 +75,7 @@
                                                Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
                                                class="ml-2"
                                                Href="@($"/walk/{walk.Id}")"
-                                               />
+                                />
                             </div>
                             <MudText Typo="Typo.body2" Class="text-gray-600">
                                 <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" class="mr-1" />
@@ -76,13 +86,10 @@
                         </MudListItem>
                     }
                 </MudList>
-            </MudPaper>
-        }
-        else
-        {
-            <MudPaper Class="p-4">
+            }
+            else
+            {
                 <MudText Typo="Typo.body1" Class="text-gray-600">Aucune promenade enregistrée.</MudText>
-            </MudPaper>
-        }
+            }
+        </MudPaper>
     }
-</div>

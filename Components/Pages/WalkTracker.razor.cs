@@ -20,17 +20,19 @@ namespace DogTracker.Components.Pages
         private Timer timer;
         private IJSObjectReference? module;
         private IJSObjectReference? currentPositionMarker;
+
         
         [Inject] PersistentComponentState ApplicationState { get; set; }
         [Inject] private ISnackbar Snackbar { get; set; } = null!;
 
+        private DateTime? _selectedMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
         protected override async Task OnInitializedAsync()
         {
             try
             {
                 isLoading = true;
-                walkHistory = await DogService.GetRecentWalksAsync(DogId);
+                walkHistory = await WalkService.GetWalksByMonthAsync(DogId, _selectedMonth?.Year ?? DateTime.Now.Year, _selectedMonth?.Month ?? DateTime.Now.Month);
                 isLoading = false;
                 LocationService.OnPositionChanged += OnPositionChanged;
                 
@@ -60,6 +62,22 @@ namespace DogTracker.Components.Pages
             {
                 isLoading = false;
             }
+        }
+        
+        
+        private async Task OnMonthChanged(DateTime? newMonth)
+        {
+            _selectedMonth = newMonth;
+            if (_selectedMonth.HasValue)
+            {
+                var startDate = new DateTime(_selectedMonth.Value.Year, _selectedMonth.Value.Month, 1);
+                walkHistory = await WalkService.GetWalksByMonthAsync(DogId, startDate.Year, startDate.Month);
+            }
+            else
+            {
+                walkHistory = await WalkService.GetRecentWalksAsync(DogId);
+            }
+            StateHasChanged();
         }
         
         private Task PersistState()
@@ -111,8 +129,8 @@ namespace DogTracker.Components.Pages
                     Route = JsonSerializer.Serialize(positions)
                 };
 
-                await DogService.AddWalkAsync(DogId, walk);
-                walkHistory = await DogService.GetRecentWalksAsync(DogId);
+                await WalkService.AddWalkAsync(DogId, walk);
+                walkHistory = await WalkService.GetRecentWalksAsync(DogId);
                 isLoading = false;
                 Snackbar.Add("Promenade enregistrée !", Severity.Success);
             }
@@ -127,8 +145,8 @@ namespace DogTracker.Components.Pages
             try
             {
                 isLoading = true;
-                await DogService.DeleteWalkAsync(dogId, walkId);
-                walkHistory = await DogService.GetRecentWalksAsync(dogId);
+                await WalkService.DeleteWalkAsync(dogId, walkId);
+                walkHistory = await WalkService.GetRecentWalksAsync(dogId);
                 Snackbar.Add("Promenade supprimée !", Severity.Success);
             }
             catch (Exception ex)
