@@ -19,55 +19,47 @@ namespace DogTracker.Components.Pages
         private Timer timer;
         private IJSObjectReference? module;
         private IJSObjectReference? currentPositionMarker;
-        private bool isInitialized = false;
-
+        
         [Inject] PersistentComponentState ApplicationState { get; set; }
+
 
         protected override async Task OnInitializedAsync()
         {
-            if (!isInitialized)
+            try
             {
-                var isPrerendering = JsRuntime == null;
-
-                if (!isPrerendering)
+                isLoading = true;
+                walkHistory = await DogService.GetRecentWalksAsync(DogId);
+                isLoading = false;
+                LocationService.OnPositionChanged += OnPositionChanged;
+                
+                ApplicationState.RegisterOnPersisting(PersistState);
+                if (ApplicationState.TryTakeFromJson<List<GeolocationPosition>>("positions", out var savedPositions))
                 {
-                    try
-                    {
-                        isLoading = true;
-                        walkHistory = await DogService.GetRecentWalksAsync(DogId);
-                        isLoading = false;
-                        LocationService.OnPositionChanged += OnPositionChanged;
-
-                        ApplicationState.RegisterOnPersisting(PersistState);
-                        if (ApplicationState.TryTakeFromJson<List<GeolocationPosition>>("positions", out var savedPositions))
-                        {
-                            positions = savedPositions;
-                        }
-                        if (ApplicationState.TryTakeFromJson<double>("currentDistance", out var savedDistance))
-                        {
-                            currentDistance = savedDistance;
-                        }
-                        if (ApplicationState.TryTakeFromJson<DateTime?>("startTime", out var savedStartTime))
-                        {
-                            startTime = savedStartTime;
-                        }
-                        if (ApplicationState.TryTakeFromJson<bool>("isTracking", out var savedIsTracking))
-                        {
-                            isTracking = savedIsTracking;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Erreur lors de l'initialisation: {ex.Message}");
-                    }
-                    finally
-                    {
-                        isLoading = false;
-                        isInitialized = true;
-                    }
+                    positions = savedPositions;
+                }
+                if (ApplicationState.TryTakeFromJson<double>("currentDistance", out var savedDistance))
+                {
+                    currentDistance = savedDistance;
+                }
+                if (ApplicationState.TryTakeFromJson<DateTime?>("startTime", out var savedStartTime))
+                {
+                    startTime = savedStartTime;
+                }
+                if (ApplicationState.TryTakeFromJson<bool>("isTracking", out var savedIsTracking))
+                {
+                    isTracking = savedIsTracking;
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors de l'initialisation: {ex.Message}");
+            }
+            finally
+            {
+                isLoading = false;
+            }
         }
+        
         private Task PersistState()
         {
             ApplicationState.PersistAsJson("positions", positions);
