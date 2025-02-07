@@ -34,12 +34,24 @@ builder.Services.AddControllers();
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), npgsqlOptionsAction: options =>
+        {
+            options.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorCodesToAdd: null);
+        }));
 }
 else
 {
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(Environment.GetEnvironmentVariable("POSTGRESQLCONNSTR_prod")));
+        options.UseNpgsql(Environment.GetEnvironmentVariable("POSTGRESQLCONNSTR_prod"), npgsqlOptionsAction: options =>
+        {
+            options.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorCodesToAdd: null);
+        }));
 }
 
 
