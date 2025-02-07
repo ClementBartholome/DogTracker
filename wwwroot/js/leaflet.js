@@ -1,5 +1,5 @@
 ﻿export function load_map() {
-    let map = L.map('map').setView([46.1733888, -1.1337728], 13);
+    let map = L.map('map').setView([46.1733888, -1.1337728], 19);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
     }).addTo(map);
@@ -29,7 +29,7 @@
 
     let locationMarker = null;
 
-    map.locate({setView: true, maxZoom: 16});
+    map.locate({setView: true, maxZoom: 19});
     map.on('locationfound', function (e) {
         if (locationMarker) {
             locationMarker.setLatLng([e.latlng.lat, e.latlng.lng]);
