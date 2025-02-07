@@ -1,9 +1,11 @@
 ﻿@page "/"
 @using DogTracker.Interfaces
+@using DogTracker.Components.Layout
 @inject IDogService DogService
+@inject IWalkService WalkService
 @rendermode InteractiveServer
 
-<MudText Typo="Typo.h5" Class="pl-3 pt-3">Tableau de bord</MudText>
+<MudText Typo="Typo.h4" Class="pl-3 pt-3">Tableau de bord</MudText>
 <MudGrid Class="mt-2">
     <MudItem xs="12" md="3">
         <MudCard Class="p-3">
@@ -29,8 +31,8 @@
                     </div>
                     <div class="mt-2 d-flex flex-column align-items-center">
                         <MudText Typo="Typo.body1" Class="fw-bold">@_totalWalksToday</MudText>
-                        <MudText Typo="Typo.caption">Promenades</MudText>
-                    </div>
+                        <MudText Typo="Typo.caption">@(_totalWalksToday == 1 ? "Promenade" : "Promenades")</MudText>
+                        </div>
                 </div>
             }
         </MudCard>
@@ -116,3 +118,6 @@
         </MudCard>
     </MudItem>
 </MudGrid>
+
+
+<RadialMenu/>

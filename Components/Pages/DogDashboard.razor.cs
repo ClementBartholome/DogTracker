@@ -1,5 +1,4 @@
 ﻿using DogTracker.Models;
-using DogTracker.Services;
 using Microsoft.AspNetCore.Components;
 
 namespace DogTracker.Components.Pages
@@ -19,7 +18,7 @@ namespace DogTracker.Components.Pages
         protected override async Task OnInitializedAsync()
         {
             isLoading = true;
-            _recentWalks = await DogService.GetRecentWalksAsync(DogId);
+            _recentWalks = await WalkService.GetRecentWalksAsync(DogId);
             _weightHistory = await DogService.GetWeightHistoryAsync(DogId);
             _expenses = await DogService.GetExpensesAsync(DogId, DateTime.Now.AddMonths(-1), DateTime.Now);
             CalculateTodayStats();
