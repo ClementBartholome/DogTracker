@@ -1,5 +1,7 @@
-﻿using DogTracker.Interfaces;
+﻿using System.Text.Json;
+using DogTracker.Interfaces;
 using DogTracker.Models;
+using DogTracker.ViewModels;
 using Microsoft.JSInterop;
 
 namespace DogTracker.Services;
@@ -45,5 +47,16 @@ public class LocationService : ILocationService
     public void OnLocationUpdate(GeolocationPosition position)
     {
         OnPositionChanged?.Invoke(this, position);
+    }
+    
+    [JSInvokable]
+    public Task SyncPositions(GeolocationPosition[] newPositions)
+    {
+        foreach (var position in newPositions)
+        {
+            OnPositionChanged?.Invoke(this, position);
+        }
+    
+        return Task.CompletedTask;
     }
 }

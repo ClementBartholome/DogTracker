@@ -8,4 +8,5 @@ public interface ILocationService
     event EventHandler<GeolocationPosition> OnPositionChanged;
     Task StartWatchingPositionAsync();
     Task StopWatchingPositionAsync();
+    Task SyncPositions(GeolocationPosition[] newPositions);
 }
