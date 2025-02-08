@@ -159,7 +159,7 @@ namespace DogTracker.Components.Pages
                     StartTime = startTime!.Value,
                     EndTime = DateTime.Now,
                     Distance = currentDistance,
-                    Route = JsonSerializer.Serialize(positions)
+                    Route = JsonSerializer.Serialize(positions.Where((pos, index) => index % 100 == 0).ToList())
                 };
 
                 await WalkService.AddWalkAsync(DogId, walk);
