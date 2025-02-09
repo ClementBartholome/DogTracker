@@ -32,38 +32,70 @@ namespace DogTracker.Components.Pages
             try
             {
                 isLoading = true;
-                walkHistory = await WalkService.GetWalksByMonthAsync(DogId, _selectedMonth?.Year ?? DateTime.Now.Year, _selectedMonth?.Month ?? DateTime.Now.Month);
-                isLoading = false;
-                LocationService.OnPositionChanged += OnPositionChanged;
+                walkHistory = await WalkService.GetWalksByMonthAsync(DogId, _selectedMonth?.Year ?? DateTime.Now.Year,
+                    _selectedMonth?.Month ?? DateTime.Now.Month);
+
                 
-                ApplicationState.RegisterOnPersisting(PersistState);
-                if (ApplicationState.TryTakeFromJson<List<GeolocationPosition>>("positions", out var savedPositions))
+                // ApplicationState.RegisterOnPersisting(PersistState);
+                var hasPersistentState = false;
+                
+                // if (ApplicationState.TryTakeFromJson<List<GeolocationPosition>>("positions", out var savedPositions) &&
+                //     ApplicationState.TryTakeFromJson<double>("currentDistance", out var savedDistance) &&
+                //     ApplicationState.TryTakeFromJson<DateTime?>("startTime", out var savedStartTime) &&
+                //     ApplicationState.TryTakeFromJson<bool>("isTracking", out var savedIsTracking))
+                // {
+                //     positions = savedPositions;
+                //     currentDistance = savedDistance;
+                //     startTime = savedStartTime;
+                //     isTracking = savedIsTracking;
+                //     hasPersistentState = true;
+                // }
+
+                // Si pas de données persistantes, vérifions le localStorage
+                if (!hasPersistentState)
                 {
-                    positions = savedPositions;
+                    var ongoingWalk = await LocationService.CheckForOngoingWalkAsync();
+                    if (ongoingWalk != null)
+                    {
+                        isTracking = true;
+                        startTime = ongoingWalk.StartTime;
+                        positions = ongoingWalk.Positions.ToList();
+
+                        // Recalculer la distance totale
+                        currentDistance = 0;
+                        for (var i = 1; i < positions.Count; i++)
+                        {
+                            var prev = positions[i - 1];
+                            var curr = positions[i];
+                            currentDistance += CalculateDistance(
+                                prev.Latitude, prev.Longitude,
+                                curr.Latitude, curr.Longitude);
+                        }
+
+                        Snackbar.Add("Reprise de la promenade en cours", Severity.Info);
+                    }
                 }
-                if (ApplicationState.TryTakeFromJson<double>("currentDistance", out var savedDistance))
+
+                // Si on a une promenade en cours
+                if (isTracking)
                 {
-                    currentDistance = savedDistance;
+                    await LocationService.StartWatchingPositionAsync();
+                    timer = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, 0, 1000);
                 }
-                if (ApplicationState.TryTakeFromJson<DateTime?>("startTime", out var savedStartTime))
-                {
-                    startTime = savedStartTime;
-                }
-                if (ApplicationState.TryTakeFromJson<bool>("isTracking", out var savedIsTracking))
-                {
-                    isTracking = savedIsTracking;
-                }
+
+                // On n'enregistre l'événement qu'une seule fois
+                LocationService.OnPositionChanged += OnPositionChanged;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de l'initialisation: {ex.Message}");
+                Snackbar.Add("Erreur lors de l'initialisation", Severity.Error);
             }
             finally
             {
                 isLoading = false;
             }
         }
-        
         
         private async Task OnMonthChanged(DateTime? newMonth)
         {
@@ -77,9 +109,10 @@ namespace DogTracker.Components.Pages
             {
                 walkHistory = await WalkService.GetRecentWalksAsync(DogId);
             }
+
             StateHasChanged();
         }
-        
+
         private Task PersistState()
         {
             ApplicationState.PersistAsJson("positions", positions);
@@ -99,7 +132,7 @@ namespace DogTracker.Components.Pages
                 currentDistance = 0;
 
                 await LocationService.StartWatchingPositionAsync();
-                
+
                 Snackbar.Add("Promenade lancée !", Severity.Success);
 
                 timer = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, 0, 1000);
@@ -126,17 +159,19 @@ namespace DogTracker.Components.Pages
                     StartTime = startTime!.Value,
                     EndTime = DateTime.Now,
                     Distance = currentDistance,
-                    Route = JsonSerializer.Serialize(positions.Where((pos, index) => index % 100 == 0).ToList())
+                    Route = JsonSerializer.Serialize(positions)
                 };
 
                 await WalkService.AddWalkAsync(DogId, walk);
                 walkHistory = await WalkService.GetRecentWalksAsync(DogId);
+
                 isLoading = false;
                 Snackbar.Add("Promenade enregistrée !", Severity.Success);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de l'arrêt de la promenade: {ex.Message}");
+                Snackbar.Add("Erreur lors de l'enregistrement de la promenade", Severity.Error);
             }
         }
 
@@ -198,7 +233,8 @@ namespace DogTracker.Components.Pages
             {
                 if (currentPositionMarker == null)
                 {
-                    currentPositionMarker = await JsRuntime.InvokeAsync<IJSObjectReference>("addCurrentPositionMarker", lat, lng);
+                    currentPositionMarker =
+                        await JsRuntime.InvokeAsync<IJSObjectReference>("addCurrentPositionMarker", lat, lng);
                 }
                 else
                 {
@@ -214,7 +250,7 @@ namespace DogTracker.Components.Pages
         private string GetFormattedDuration()
         {
             if (!startTime.HasValue) return "00:00:00";
-            var duration = DateTime.Now - startTime.Value;
+            var duration = DateTime.Now - startTime.Value.ToLocalTime();
             return duration.ToString(@"hh\:mm\:ss");
         }
 
