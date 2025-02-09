@@ -22,7 +22,7 @@
             {
                 <div class="d-flex justify-content-around mt-2">
                     <div class="mt-2 d-flex flex-column align-items-center">
-                        <MudText Typo="Typo.body1" Class="fw-bold">@_totalDurationToday.ToString("F2") min</MudText>
+                        <MudText Typo="Typo.body1" Class="fw-bold">@_totalDurationToday</MudText>
                         <MudText Typo="Typo.caption">Durée</MudText>
                     </div>
                     <div class="mt-2 d-flex flex-column align-items-center">
@@ -32,7 +32,7 @@
                     <div class="mt-2 d-flex flex-column align-items-center">
                         <MudText Typo="Typo.body1" Class="fw-bold">@_totalWalksToday</MudText>
                         <MudText Typo="Typo.caption">@(_totalWalksToday == 1 ? "Promenade" : "Promenades")</MudText>
-                        </div>
+                    </div>
                 </div>
             }
         </MudCard>
@@ -55,7 +55,7 @@
                 <div class="mt-2 d-flex flex-column gap-2 pl-4">
                     <MudText Typo="Typo.body1">
                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Class="mr-1" />
-                        @lastWalk.StartTime.ToString("dd/MM/yyyy à HH\\hmm")
+                        @lastWalk.AdjustedStartTime.ToString("dd/MM/yyyy à HH\\hmm")
                     </MudText>
                     <MudText Typo="Typo.body1">
                         <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" Class="mr-1" />
@@ -63,7 +63,11 @@
                     </MudText>
                     <MudText Typo="Typo.body1">
                         <MudIcon Icon="@Icons.Material.Filled.Timer" Class="mr-1" />
-                        @((lastWalk.EndTime - lastWalk.StartTime).TotalMinutes.ToString("F2")) min
+                        @{
+                            var lastWalkDuration = (lastWalk.AdjustedEndTime - lastWalk.AdjustedStartTime).TotalMinutes;
+                            var formattedDuration = lastWalkDuration < 60 ? $"{lastWalkDuration:F0} min" : $"{lastWalkDuration / 60:F0}h{lastWalkDuration % 60:F0}";
+                        }
+                        @formattedDuration
                     </MudText>
                 </div>
             }
@@ -118,6 +122,5 @@
         </MudCard>
     </MudItem>
 </MudGrid>
-
 
 <RadialMenu/>

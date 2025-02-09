@@ -15,8 +15,6 @@ namespace DogTracker.ViewModels
         public DateTime AdjustedStartTime => Walk.StartTime.AddHours(1);
         public DateTime AdjustedEndTime => Walk.EndTime.AddHours(1);
         public double Distance => Walk.Distance;
-        public string? Route => Walk.Route;
         public string? Notes => Walk.Notes;
-        public int DogId => Walk.DogId;
     }
 }

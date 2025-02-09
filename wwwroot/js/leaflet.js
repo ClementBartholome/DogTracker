@@ -78,9 +78,12 @@ export function addCurrentPositionMarker(lat, lng) {
     }
 
     marker.setLatLng([lat, lng]);
+    map.setView([lat, lng], map.getZoom());
+
     return {
         setLatLng: function(newLat, newLng) {
             marker.setLatLng([newLat, newLng]);
+            map.setView([newLat, newLng], map.getZoom());
         }
     };
 }
