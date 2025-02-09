@@ -37,7 +37,8 @@ window.getCurrentPosition = () => {
 
 window.startWatchingPosition = (helper, simulate) => {
     dotNetHelper = helper;
-    const walkData = {
+
+    let walkData = JSON.parse(localStorage.getItem('currentWalk')) || {
         startTime: new Date(),
         positions: [],
         lastSync: new Date()
@@ -138,4 +139,9 @@ window.stopWatchingPosition = () => {
     }
 
     return walkData;
+};
+
+window.checkForOngoingWalk = () => {
+    const walkData = localStorage.getItem('currentWalk');
+    return walkData ? JSON.parse(walkData) : null;
 };

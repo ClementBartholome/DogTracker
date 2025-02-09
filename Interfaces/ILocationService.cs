@@ -1,4 +1,5 @@
 ﻿using DogTracker.Models;
+using DogTracker.ViewModels;
 
 namespace DogTracker.Interfaces;
 
@@ -9,4 +10,5 @@ public interface ILocationService
     Task StartWatchingPositionAsync();
     Task StopWatchingPositionAsync();
     Task SyncPositions(GeolocationPosition[] newPositions);
+    Task<WalkDataViewModel?> CheckForOngoingWalkAsync();
 }

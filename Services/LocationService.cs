@@ -59,4 +59,9 @@ public class LocationService : ILocationService
     
         return Task.CompletedTask;
     }
+    
+    public async Task<WalkDataViewModel?> CheckForOngoingWalkAsync()
+    {
+        return await _jsRuntime.InvokeAsync<WalkDataViewModel?>("getStoredWalkData");
+    }
 }
