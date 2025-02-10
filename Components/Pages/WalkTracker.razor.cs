@@ -24,9 +24,10 @@ namespace DogTracker.Components.Pages
         
         [Inject] PersistentComponentState ApplicationState { get; set; }
         [Inject] private ISnackbar Snackbar { get; set; } = null!;
+        [Inject] private IDialogService DialogService { get; set; }
 
         private DateTime? _selectedMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-
+        
         protected override async Task OnInitializedAsync()
         {
             try
@@ -143,7 +144,26 @@ namespace DogTracker.Components.Pages
             }
         }
 
-        private async Task StopWalk()
+        private async Task ConfirmStopWalk()
+        {
+            var parameters = new DialogParameters
+            {
+                { "ContentText", "Es-tu sûr de vouloir terminer cette promenade ?" },
+                { "ButtonText", "Terminer" },
+                { "Color", Color.Error },
+                { "ShowNotes", true }
+            };
+
+            var dialog = await DialogService.ShowAsync<Dialog>("Fin de la promenade", parameters);
+            var result = await dialog.Result;
+
+            if (result is { Canceled: false, Data: string notes })
+            {
+                await StopWalk(notes);
+            }
+        }
+
+        private async Task StopWalk(string notes)
         {
             if (!isTracking) return;
 
@@ -159,7 +179,8 @@ namespace DogTracker.Components.Pages
                     StartTime = startTime!.Value,
                     EndTime = DateTime.Now,
                     Distance = currentDistance,
-                    Route = JsonSerializer.Serialize(positions.Where((pos, index) => index % 100 == 0).ToList())
+                    Route = JsonSerializer.Serialize(positions.Where((pos, index) => index % 100 == 0).ToList()),
+                    Notes = notes
                 };
 
                 await WalkService.AddWalkAsync(DogId, walk);
@@ -172,6 +193,24 @@ namespace DogTracker.Components.Pages
             {
                 Console.WriteLine($"Erreur lors de l'arrêt de la promenade: {ex.Message}");
                 Snackbar.Add("Erreur lors de l'enregistrement de la promenade", Severity.Error);
+            }
+        }
+        
+        private async Task ConfirmDeleteWalk(int dogId, int walkId)
+        {
+            var parameters = new DialogParameters
+            {
+                { "ContentText", "Es-tu sûr de vouloir supprimer cette promenade ?" },
+                { "ButtonText", "Supprimer" },
+                { "Color", Color.Error }
+            };
+
+            var dialog = await DialogService.ShowAsync<Dialog>("Suppression", parameters);
+            var result = await dialog.Result;
+
+            if (result is { Canceled: false })
+            {
+                await DeleteWalk(dogId, walkId);
             }
         }
 

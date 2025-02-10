@@ -1,12 +1,11 @@
 ﻿@page "/dog/{DogId:int}/walk"
 @inject ILocationService LocationService
-@inject IDogService DogService
 @inject IWalkService WalkService
 @inject IJSRuntime JsRuntime
 @using DogTracker.Interfaces
-@using DogTracker.Models
 @using DogTracker.ViewModels
 @rendermode InteractiveServer
+
 
     <MudPaper class="p-4 mb-4">
         <MudText Typo="Typo.h4" class="mb-4">
@@ -28,7 +27,7 @@
                     <p class="text-lg">Distance: @(currentDistance.ToString("F2")) km</p>
                 </div>
 
-                <MudButton OnClick="StopWalk" Color="Color.Primary" Variant="Variant.Filled"
+                <MudButton OnClick="ConfirmStopWalk" Color="Color.Primary" Variant="Variant.Filled"
                            class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg">
                     Terminer la promenade
                 </MudButton>
@@ -70,7 +69,7 @@
                                 <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete"
                                                Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
                                                class="ml-auto"
-                                               OnClick="@(() => DeleteWalk(1, walk.Id))"/>
+                                               OnClick="@(() => ConfirmDeleteWalk(1, walk.Id))"/>
                                 <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" aria-label="more"
                                                Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
                                                class="ml-2"
@@ -89,7 +88,7 @@
             }
             else
             {
-                <MudText Typo="Typo.body1" Class="text-gray-600">Aucune promenade enregistrée.</MudText>
+                <MudText Typo="Typo.body1" Class="text-gray-600">Aucune promenade enregistrée</MudText>
             }
         </MudPaper>
     }
