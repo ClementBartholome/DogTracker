@@ -58,6 +58,7 @@ else
 builder.Services.AddScoped<IDogService, DogService>();
 builder.Services.AddScoped<IWalkService, WalkService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
 
 
 var app = builder.Build();
