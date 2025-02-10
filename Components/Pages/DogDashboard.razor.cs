@@ -20,6 +20,8 @@ namespace DogTracker.Components.Pages
         private double _totalDistanceToday;
         private int _totalWalksToday;
         private bool isLoading = false;
+        private ExpenseSummaryViewModel expenseSummary = new();
+
 
         protected override async Task OnInitializedAsync()
         {
@@ -31,7 +33,29 @@ namespace DogTracker.Components.Pages
             _weightHistory = await DogService.GetWeightHistoryAsync(DogId);
             _expenses = await ExpenseService.GetExpensesAsync(DogId, DateTime.Now.Year, DateTime.Now.Month);
             CalculateTodayStats();
+            PrepareExpenseSummary();
             isLoading = false;
+        }
+        
+        private void PrepareExpenseSummary()
+        {
+            if (_expenses.Any())
+            {
+                expenseSummary = new ExpenseSummaryViewModel
+                {
+                    MonthlyTotal = _expenses
+                        .Where(e => e.Date.Month == DateTime.Now.Month)
+                        .Sum(e => e.Amount),
+                    LastExpenseDate = _expenses
+                        .OrderByDescending(e => e.Date)
+                        .FirstOrDefault()?.Date
+                        .AddHours(1)
+                };
+            }
+            else
+            {
+                expenseSummary = new ExpenseSummaryViewModel();
+            }
         }
         
         private void CalculateTodayStats()

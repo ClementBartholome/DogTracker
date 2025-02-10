@@ -104,21 +104,18 @@
             {
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="60px"/>
             }
-            else if (!_expenses.Any())
+            else if (expenseSummary.MonthlyTotal == 0)
             {
                 <MudText Typo="Typo.body1" Class="pl-4">Aucune dépense enregistrée</MudText>
             }
             else
             {
-                var monthlyTotal = _expenses
-                    .Where(e => e.Date.Month == DateTime.Now.Month)
-                    .Sum(e => e.Amount);
                 <div class="mt-2 pl-4">
                     <MudText Typo="Typo.body1">
                         <MudIcon Icon="@Icons.Material.Filled.Wallet" Class="mr-1" />
-                        @monthlyTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
+                        @expenseSummary.MonthlyTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
                     </MudText>
-                    <MudText Typo="Typo.body1">Dernière dépense enregistrée le @(_expenses.OrderByDescending(e => e.Date).FirstOrDefault()?.Date.ToString("dd/MM/yyyy à HH\\hmm") ?? "N/A")</MudText>
+                    <MudText Typo="Typo.body1">Dernière dépense enregistrée le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy") ?? "N/A")</MudText>
                 </div>
             }
         </MudCard>
