@@ -116,7 +116,7 @@ namespace DogTracker.Components.Pages
         {
             var parameters = new DialogParameters
             {
-                { "ContentText", "Êtes-vous sûr de vouloir supprimer cette dépense ?" },
+                { "ContentText", "Es-tu sûr de vouloir supprimer cette dépense ?" },
                 { "ButtonText", "Supprimer" },
                 { "Color", Color.Error }
             };

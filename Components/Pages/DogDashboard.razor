@@ -116,7 +116,7 @@
                 <div class="mt-2 pl-4">
                     <MudText Typo="Typo.body1">
                         <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Class="mr-1" />
-                        @monthlyTotal.ToString("C")
+                        @monthlyTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
                     </MudText>
                     <MudText Typo="Typo.body1">Dernière dépense enregistrée le @(_expenses.OrderByDescending(e => e.Date).FirstOrDefault()?.Date.ToString("dd/MM/yyyy à HH\\hmm") ?? "N/A")</MudText>
                 </div>

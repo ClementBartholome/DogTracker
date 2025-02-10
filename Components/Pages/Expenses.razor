@@ -75,7 +75,7 @@ else
                         <div class="d-flex flex-wrap mt-2">
                             <MudText Typo="Typo.body2" Class="text-gray-600 mr-4">
                                 <MudIcon Icon="@Icons.Material.Filled.AttachMoney" class="mr-1"/>
-                                @expense.Amount.ToString("C")
+                                @expense.Amount.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
                             </MudText>
                             <MudText Typo="Typo.body2" Class="text-gray-600 mr-4">
                                 <MudIcon Icon="@Icons.Material.Filled.Category" class="mr-1"/>
@@ -111,7 +111,7 @@ else
         <div class="mt-2 pl-4">
             <MudText Typo="Typo.body1">
                 <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Class="mr-1"/>
-                @expenseSummary.MonthlyTotal.ToString("C")
+                @expenseSummary.MonthlyTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
             </MudText>
             <MudText Typo="Typo.body1">Dernière dépense enregistrée
                 le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy à HH\\hmm") ?? "N/A")</MudText>
