@@ -1,0 +1,60 @@
+﻿@using DogTracker.Enums
+@using DogTracker.Models
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6" class="mb-4">Ajouter une dépense</MudText>
+        <MudDatePicker @bind-Date="_date" Label="Date" Variant="Variant.Filled" class="mb-4"/>
+        <MudTextField @bind-Value="_expense.Amount"
+                      Label="Montant"
+                      InputType="InputType.Telephone"
+                      Variant="Variant.Filled"
+                      FullWidth="true"
+                      class="mb-4"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.AttachMoney"/>
+        <MudSelect @bind-Value="_expense.Category" 
+                   Label="Catégorie" 
+                   Variant="Variant.Filled" 
+                   FullWidth="true"
+                   class="mb-4"
+                    Adornment="Adornment.End"
+                   AdornmentIcon="@Icons.Material.Filled.Category">
+            <MudSelectItem Value="CategoryEnum.Nourriture">Nourriture</MudSelectItem>
+            <MudSelectItem Value="CategoryEnum.Vétérinaire">Vétérinaire</MudSelectItem>
+            <MudSelectItem Value="CategoryEnum.Accessoires">Accessoires</MudSelectItem>
+            <MudSelectItem Value="CategoryEnum.Autre">Autre</MudSelectItem>
+        </MudSelect>
+        <MudTextField @bind-Value="_expense.Description" 
+                      Label="Description" 
+                      Variant="Variant.Filled" 
+                      FullWidth="true"
+                      class="mb-4" 
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.Description"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Annuler</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Ajouter</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+
+    private static DateTime? _date = DateTime.Today;
+
+
+    private readonly Expense _expense = new()
+    {
+        Date = _date.Value,
+        Amount = 0,
+        Category = CategoryEnum.Nourriture,
+        Description = string.Empty,
+        DogId = 1
+    };
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(_expense));
+
+
+    private void Cancel() => MudDialog.Cancel();
+}
