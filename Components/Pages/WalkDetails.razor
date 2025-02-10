@@ -3,25 +3,25 @@
 @using DogTracker.Interfaces
 @using DogTracker.ViewModels
 
-<MudCard class="m-3 p-4">
-    <MudText TextStyle="TextStyle.H5">Détails de la promenade</MudText>
+<MudCard class="m-3 p-4 gap-2">
+    <MudText Typo="Typo.h5">Détails de la promenade</MudText>
     @if (WalkViewModel != null)
     {
         <MudText Typo="Typo.body2">
             <MudIcon Icon="@Icons.Material.Filled.CalendarToday" class="mr-1" />
-            Date: @WalkViewModel.AdjustedStartTime.ToString("dd/MM/yyyy HH\\hmm")
+            Date : @WalkViewModel.AdjustedStartTime.ToString("dd/MM/yyyy à HH\\hmm")
         </MudText>
         <MudText Typo="Typo.body2" Class="text-gray-600">
             <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" class="mr-1" />
-            Distance: @WalkViewModel.Distance.ToString("F2") km
+            Distance : @WalkViewModel.Distance.ToString("F2") km
         </MudText>
         <MudText Typo="Typo.body2" Class="text-gray-600">
             <MudIcon Icon="@Icons.Material.Filled.Timer" class="mr-1" />
-            Durée: @((WalkViewModel.AdjustedEndTime - WalkViewModel.AdjustedStartTime).TotalMinutes.ToString("F0")) min
+            Durée : @((WalkViewModel.AdjustedEndTime - WalkViewModel.AdjustedStartTime).TotalMinutes.ToString("F0")) min
         </MudText>
-        <MudText Typo="Typo.body2" Class="text-gray-600">
-            <MudIcon Icon="@Icons.Material.Filled.Notes" class="mr-1" />
-            Notes: @WalkViewModel.Notes
+        <MudText Typo="Typo.body2" Class="text-gray-600 text-break">
+            <MudIcon Icon="@Icons.Material.Filled.Description" class="mr-1" />
+            Notes : @WalkViewModel.Notes
         </MudText>
     }
     else
@@ -29,4 +29,4 @@
         <MudText Typo="Typo.body1" Class="text-gray-600">Chargement des détails de la promenade...</MudText>
     }
 </MudCard>
-<WalkMap WalkId="WalkId" />
+@* <WalkMap WalkId="WalkId" /> *@
