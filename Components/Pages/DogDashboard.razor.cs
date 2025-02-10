@@ -11,7 +11,7 @@ namespace DogTracker.Components.Pages
         private List<WalkViewModel> _recentWalks = [];
         private List<WeightRecord> _weightHistory = [];
         private List<Expense> _expenses = [];
-        private string _totalDurationToday;
+        private string? _totalDurationToday;
         private double _totalDistanceToday;
         private int _totalWalksToday;
         private bool isLoading = false;
