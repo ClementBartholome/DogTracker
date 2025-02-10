@@ -1,0 +1,36 @@
+﻿<MudDialog Style="max-width: 320px">
+    <DialogContent>
+        <MudText class="mb-4">@ContentText</MudText>
+        @if (ShowNotes)
+        {
+            <MudTextField @bind-Value="Notes" Label="Notes" Variant="Variant.Filled" FullWidth="true" AutoGrow="true" Lines="2" />
+        }
+        </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Annuler</MudButton>
+        <MudButton Color="@Color" Variant="Variant.Filled" OnClick="Submit">@ButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string ContentText { get; set; }
+
+    [Parameter]
+    public string ButtonText { get; set; }
+
+    [Parameter]
+    public Color Color { get; set; }
+    
+    [Parameter]
+    public bool ShowNotes { get; set; }
+
+    public string Notes { get; set; }
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(Notes));
+
+    private void Cancel() => MudDialog.Cancel();
+}
