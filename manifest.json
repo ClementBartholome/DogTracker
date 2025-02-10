@@ -1,0 +1,15 @@
+﻿{
+  "name": "MonToutou",
+  "short_name": "MonToutou",
+  "icons": [
+    {
+      "src": "https://montoutou-h0bdfdhndcg4dseg.westeurope-01.azurewebsites.net/images/MonToutou_Icon.png",
+      "type": "image/png",
+      "sizes": "235x235" 
+    }
+  ],
+  "description": "Application de tracking pour chiens",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff"
+}
