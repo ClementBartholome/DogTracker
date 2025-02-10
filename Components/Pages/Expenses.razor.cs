@@ -48,6 +48,7 @@ namespace DogTracker.Components.Pages
                     LastExpenseDate = expenseHistory
                         .OrderByDescending(e => e.Date)
                         .FirstOrDefault()?.Date
+                        .AddHours(1)
                 };
             }
             else

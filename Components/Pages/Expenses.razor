@@ -114,7 +114,7 @@ else
                 @expenseSummary.MonthlyTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
             </MudText>
             <MudText Typo="Typo.body1">Dernière dépense enregistrée
-                le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy à HH\\hmm") ?? "N/A")</MudText>
+                le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy") ?? "N/A")</MudText>
         </div>
     }
 </MudPaper>
