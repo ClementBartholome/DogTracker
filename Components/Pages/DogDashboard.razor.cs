@@ -1,4 +1,6 @@
-﻿using DogTracker.Models;
+﻿using DogTracker.Interfaces;
+using DogTracker.Models;
+using DogTracker.Services;
 using DogTracker.ViewModels;
 using Microsoft.AspNetCore.Components;
 
@@ -7,6 +9,9 @@ namespace DogTracker.Components.Pages
     public partial class DogDashboard
     {
         [Parameter] public int DogId { get; set; } = 1;
+        [Inject] private IDogService DogService { get; set; } = null!;
+        [Inject] private IWalkService WalkService { get; set; } = null!;
+        [Inject] private IExpenseService ExpenseService { get; set; } = null!;
         
         private List<WalkViewModel> _recentWalks = [];
         private List<WeightRecord> _weightHistory = [];
@@ -24,7 +29,7 @@ namespace DogTracker.Components.Pages
             _recentWalks = walks.Select(w => new WalkViewModel(w)).ToList();
             
             _weightHistory = await DogService.GetWeightHistoryAsync(DogId);
-            _expenses = await DogService.GetExpensesAsync(DogId, DateTime.Now.AddMonths(-1), DateTime.Now);
+            _expenses = await ExpenseService.GetExpensesAsync(DogId, DateTime.Now.Year, DateTime.Now.Month);
             CalculateTodayStats();
             isLoading = false;
         }

@@ -1,23 +1,53 @@
-﻿@page "/depenses"
-@inject IJSRuntime JsRuntime
-@using DogTracker.Models
-@using DogTracker.ViewModels
+﻿@page "/dog/{dogId:int}/depenses"
 @rendermode InteractiveServer
 
 <MudPaper class="p-4 mb-4">
     <MudText Typo="Typo.h4" class="mb-4">
-        <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Size="Size.Large" class="mr-2"/>
+        <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Size="Size.Large"/>
         Dépenses
     </MudText>
-    <MudButton
+    <MudButton OnClick="OpenAddExpenseDialog"
                Color="Color.Primary" Variant="Variant.Filled"
                class="w-full text-white font-bold py-3 rounded-lg">
         Ajouter une dépense
     </MudButton>
 </MudPaper>
 
+@if (isLoading)
+{
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
+}
+else
+{
     <MudPaper Class="p-4 mb-4">
-        <MudText Typo="Typo.h6">Historique des Dépenses</MudText>
+        <MudText Typo="Typo.h6" class="mb-2">Répartition des dépenses</MudText>
+
+        @if (chartData.Length == 0)
+        {
+            <MudText Typo="Typo.body1" Class="text-gray-600">Aucune donnée disponible pour le graphique</MudText>
+        }
+        else
+        {
+            <MudChart ChartType="ChartType.Pie" 
+                      InputData="@chartData" 
+                      InputLabels="@labels" 
+                      Width="300px"
+                      Height="300px"
+                      ChartOptions="new ChartOptions { ShowToolTips = true, ShowLabels = true }"
+                      />
+
+        }
+    </MudPaper>
+}
+
+@if (isLoading)
+{
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
+}
+else
+{
+    <MudPaper Class="p-4 mb-4">
+        <MudText Typo="Typo.h6">Historique des dépenses</MudText>
         <MudDatePicker OpenTo="OpenTo.Month"
                        FixYear="DateTime.Now.Year"
                        FixDay="1"
@@ -25,36 +55,66 @@
                        Class="mb-4"
                        ShowToolbar="false"
                        AutoClose="true"
-        />
-        @* @if (expenseHistory?.Any() == true) *@
-        @* { *@
-        @*     <MudList T="object"> *@
-        @*         @foreach (var expense in expenseHistory.OrderByDescending(e => e.Date)) *@
-        @*         { *@
-        @*             <MudListItem> *@
-        @*                 <div class="d-flex"> *@
-        @*                     <MudText Typo="Typo.subtitle1"> *@
-        @*                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" class="mr-1" /> *@
-        @*                         @expense.Date.ToString("dd/MM/yyyy") *@
-        @*                     </MudText> *@
-        @*                     <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete" *@
-        @*                                    Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" *@
-        @*                                    class="ml-auto" *@
-        @*                                    /> *@
-        @*                     <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" aria-label="more" *@
-        @*                                    Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" *@
-        @*                                    class="ml-2" *@
-        @*                     /> *@
-        @*                 </div> *@
-        @*                 <MudText Typo="Typo.body2" Class="text-gray-600"> *@
-        @*                     <MudIcon Icon="@Icons.Material.Filled.Money" class="mr-1" /> *@
-        @*                     <span>@expense.Amount.ToString("C")</span> *@
-        @*                     <MudIcon Icon="@Icons.Material.Filled.Description" class="ml-2 mr-1" /> *@
-        @*                     <span>@expense.Description</span> *@
-        @*                 </MudText> *@
-        @*             </MudListItem> *@
-        @*         } *@
-        @*     </MudList> *@
-        @* } *@
+                       Date="@_selectedMonth"
+                       DateChanged="OnMonthChanged"/>
+        @if (expenseHistory?.Any() == true)
+        {
+            <MudList T="object">
+                @foreach (var expense in expenseHistory.OrderByDescending(e => e.Date))
+                {
+                    <MudListItem>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <MudText Typo="Typo.subtitle1">
+                                <MudIcon Icon="@Icons.Material.Filled.CalendarToday" class="mr-1"/>
+                                @expense.Date.ToString("dd/MM/yyyy")
+                            </MudText>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete"
+                                           Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                           OnClick="@(() => ConfirmDeleteExpense(expense.Id))"/>
+                        </div>
+                        <div class="d-flex flex-wrap mt-2">
+                            <MudText Typo="Typo.body2" Class="text-gray-600 mr-4">
+                                <MudIcon Icon="@Icons.Material.Filled.AttachMoney" class="mr-1"/>
+                                @expense.Amount.ToString("C")
+                            </MudText>
+                            <MudText Typo="Typo.body2" Class="text-gray-600 mr-4">
+                                <MudIcon Icon="@Icons.Material.Filled.Category" class="mr-1"/>
+                                @expense.Category
+                            </MudText>
+                        </div>
+                        <div class="mt-2">
+                            <MudText Typo="Typo.body2" Class="text-gray-600">
+                                <MudIcon Icon="@Icons.Material.Filled.Description" class="mr-1"/>
+                                @expense.Description
+                            </MudText>
+                        </div>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+        else
+        {
+            <MudText Typo="Typo.body1" Class="text-gray-600">Aucune dépense enregistrée</MudText>
+        }
 
     </MudPaper>
+}
+
+<MudPaper Class="p-4 mb-4">
+    <MudText Typo="Typo.h6">Dépenses du mois</MudText>
+    @if (expenseSummary.MonthlyTotal == 0)
+    {
+        <MudText Typo="Typo.body1" Class="pl-4">Aucune dépense enregistrée</MudText>
+    }
+    else
+    {
+        <div class="mt-2 pl-4">
+            <MudText Typo="Typo.body1">
+                <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Class="mr-1"/>
+                @expenseSummary.MonthlyTotal.ToString("C")
+            </MudText>
+            <MudText Typo="Typo.body1">Dernière dépense enregistrée
+                le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy à HH\\hmm") ?? "N/A")</MudText>
+        </div>
+    }
+</MudPaper>

@@ -1,8 +1,6 @@
 ﻿@page "/"
 @using DogTracker.Interfaces
 @using DogTracker.Components.Layout
-@inject IDogService DogService
-@inject IWalkService WalkService
 @rendermode InteractiveServer
 
 <MudText Typo="Typo.h4" Class="pl-3 pt-3">Tableau de bord</MudText>
@@ -115,8 +113,12 @@
                 var monthlyTotal = _expenses
                     .Where(e => e.Date.Month == DateTime.Now.Month)
                     .Sum(e => e.Amount);
-                <div class="mt-2">
-                    <MudText Typo="Typo.body1">@monthlyTotal.ToString("C")</MudText>
+                <div class="mt-2 pl-4">
+                    <MudText Typo="Typo.body1">
+                        <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Class="mr-1" />
+                        @monthlyTotal.ToString("C")
+                    </MudText>
+                    <MudText Typo="Typo.body1">Dernière dépense enregistrée le @(_expenses.OrderByDescending(e => e.Date).FirstOrDefault()?.Date.ToString("dd/MM/yyyy à HH\\hmm") ?? "N/A")</MudText>
                 </div>
             }
         </MudCard>
