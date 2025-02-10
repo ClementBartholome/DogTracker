@@ -161,6 +161,10 @@ namespace DogTracker.Components.Pages
             {
                 await StopWalk(notes);
             }
+            else if (result is { Canceled: false })
+            {
+                await StopWalk(string.Empty);
+            }
         }
 
         private async Task StopWalk(string notes)
