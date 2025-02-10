@@ -1,5 +1,7 @@
 ﻿let watchId = null; // Identifiant pour la surveillance de la position
 let dotNetHelper = null; // Référence à l'objet .NET pour les appels interopérables
+let lastRecordedTime = 0; // Dernière fois que la position a été enregistrée
+const INTERVAL = 30000; // Interval de temps pour enregistrer la position
 
 // Variables pour la simulation de position
 let simulationInterval = null; 
@@ -12,7 +14,8 @@ function initializeWalkData() {
     let walkData = JSON.parse(localStorage.getItem('currentWalk')) || {
         startTime: new Date(),
         positions: [],
-        lastSync: new Date()
+        lastSync: new Date(),
+        lastRecordedTime: Date.now() 
     };
     localStorage.setItem('currentWalk', JSON.stringify(walkData));
     return walkData;
@@ -63,22 +66,28 @@ function startGeolocationWatch() {
 
     watchId = navigator.geolocation.watchPosition(
         position => {
-            const locationData = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracy: position.coords.accuracy,
-                timestamp: new Date()
-            };
-            
+            const currentTime = Date.now();
             const currentWalk = JSON.parse(localStorage.getItem('currentWalk'));
-            currentWalk.positions.push(locationData);
-            localStorage.setItem('currentWalk', JSON.stringify(currentWalk));
 
-            if (dotNetHelper) {
-                dotNetHelper.invokeMethodAsync('OnLocationUpdate', locationData);
+            // Vérifier si suffisamment de temps s'est écoulé depuis le dernier enregistrement
+            if (currentTime - currentWalk.lastRecordedTime >= POSITION_INTERVAL) {
+                const locationData = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy,
+                    timestamp: new Date()
+                };
+
+                currentWalk.positions.push(locationData);
+                currentWalk.lastRecordedTime = currentTime; // Mise à jour du timestamp
+                localStorage.setItem('currentWalk', JSON.stringify(currentWalk));
+
+                if (dotNetHelper) {
+                    dotNetHelper.invokeMethodAsync('OnLocationUpdate', locationData);
+                }
+
+                syncIfNeeded(currentWalk);
             }
-
-            syncIfNeeded(currentWalk);
         },
         error => console.error(error),
         {
