@@ -1,7 +1,95 @@
-﻿let watchId = null;
-let dotNetHelper = null;
-let simulationInterval = null;
+﻿let watchId = null; // Identifiant pour la surveillance de la position
+let dotNetHelper = null; // Référence à l'objet .NET pour les appels interopérables
 
+// Variables pour la simulation de position
+let simulationInterval = null; 
+const baseLat = 46.1733888;
+const baseLon = -1.1337728;
+const maxOffset = 0.001;
+
+
+function initializeWalkData() {
+    let walkData = JSON.parse(localStorage.getItem('currentWalk')) || {
+        startTime: new Date(),
+        positions: [],
+        lastSync: new Date()
+    };
+    localStorage.setItem('currentWalk', JSON.stringify(walkData));
+    return walkData;
+}
+
+// Synchronise les nouvelles positions avec le backend toutes les minutes
+function syncIfNeeded(currentWalk) {
+    const now = new Date();
+    const timeSinceLastSync = now - new Date(currentWalk.lastSync);
+    const SYNC_INTERVAL = 1000 * 60; 
+
+    if (timeSinceLastSync >= SYNC_INTERVAL && dotNetHelper) {
+        const newPositions = currentWalk.positions.filter(p =>
+            new Date(p.timestamp) > new Date(currentWalk.lastSync)
+        );
+
+        if (newPositions.length > 0) {
+            dotNetHelper.invokeMethodAsync('SyncPositions', newPositions)
+                .then(() => {
+                    currentWalk.lastSync = now;
+                    localStorage.setItem('currentWalk', JSON.stringify(currentWalk));
+                })
+                .catch(err => console.error('Erreur de sync:', err));
+        }
+    }
+}
+
+function startSimulation(baseLat, baseLon, maxOffset) {
+    simulationInterval = setInterval(() => {
+        const simulatedPosition = getRandomPosition(baseLat, baseLon, maxOffset);
+        const currentWalk = JSON.parse(localStorage.getItem('currentWalk'));
+        currentWalk.positions.push(simulatedPosition);
+        localStorage.setItem('currentWalk', JSON.stringify(currentWalk));
+
+        if (dotNetHelper) {
+            dotNetHelper.invokeMethodAsync('OnLocationUpdate', simulatedPosition);
+        }
+
+        syncIfNeeded(currentWalk);
+    }, 5000);
+}
+
+function startGeolocationWatch() {
+    if (!navigator.geolocation) {
+        console.error('Geolocation is not supported');
+        return;
+    }
+
+    watchId = navigator.geolocation.watchPosition(
+        position => {
+            const locationData = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy,
+                timestamp: new Date()
+            };
+            
+            const currentWalk = JSON.parse(localStorage.getItem('currentWalk'));
+            currentWalk.positions.push(locationData);
+            localStorage.setItem('currentWalk', JSON.stringify(currentWalk));
+
+            if (dotNetHelper) {
+                dotNetHelper.invokeMethodAsync('OnLocationUpdate', locationData);
+            }
+
+            syncIfNeeded(currentWalk);
+        },
+        error => console.error(error),
+        {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 30000
+        }
+    );
+}
+
+// Fonction pour obtenir une position aléatoire basée sur une position de base et un décalage maximum
 function getRandomPosition(baseLat, baseLon, maxOffset) {
     const offsetLat = (Math.random() - 0.5) * maxOffset;
     const offsetLon = (Math.random() - 0.5) * maxOffset;
@@ -37,86 +125,15 @@ window.getCurrentPosition = () => {
 
 window.startWatchingPosition = (helper, simulate) => {
     dotNetHelper = helper;
-
-    let walkData = JSON.parse(localStorage.getItem('currentWalk')) || {
-        startTime: new Date(),
-        positions: [],
-        lastSync: new Date()
-    };
-
-    localStorage.setItem('currentWalk', JSON.stringify(walkData));
-
-    const syncIfNeeded = (currentWalk) => {
-        const now = new Date();
-        const timeSinceLastSync = now - new Date(currentWalk.lastSync);
-        const SYNC_INTERVAL = 1000 * 60; // Sync toutes les minutes
-
-        if (timeSinceLastSync >= SYNC_INTERVAL && dotNetHelper) {
-            // Envoyer seulement les nouvelles positions depuis lastSync
-            const newPositions = currentWalk.positions.filter(p =>
-                new Date(p.timestamp) > new Date(currentWalk.lastSync)
-            );
-
-            if (newPositions.length > 0) {
-                dotNetHelper.invokeMethodAsync('SyncPositions', newPositions)
-                    .then(() => {
-                        currentWalk.lastSync = now;
-                        localStorage.setItem('currentWalk', JSON.stringify(currentWalk));
-                    })
-                    .catch(err => console.error('Erreur de sync:', err));
-            }
-        }
-    };
-
+    initializeWalkData();
+    
     if (simulate) {
-        const baseLat = 46.1733888
+        const baseLat = 46.1733888;
         const baseLon = -1.1337728;
-        const maxOffset = 0.001; // Maximum offset for simulation
-        
-        simulationInterval = setInterval(() => {
-            const simulatedPosition = getRandomPosition(baseLat, baseLon, maxOffset);
-            const currentWalk = JSON.parse(localStorage.getItem('currentWalk'));
-            currentWalk.positions.push(simulatedPosition);
-            localStorage.setItem('currentWalk', JSON.stringify(currentWalk));
-
-            if (dotNetHelper) {
-                dotNetHelper.invokeMethodAsync('OnLocationUpdate', simulatedPosition);
-            }
-
-            syncIfNeeded(currentWalk);
-        }, 3000);
+        const maxOffset = 0.001; // Décalage maximum pour la simulation
+        startSimulation(baseLat, baseLon, maxOffset);
     } else {
-        if (!navigator.geolocation) {
-            console.error('Geolocation is not supported');
-            return;
-        }
-        
-        watchId = navigator.geolocation.watchPosition(
-            position => {
-                const locationData = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                    accuracy: position.coords.accuracy,
-                    timestamp: new Date()
-                };
-
-                const currentWalk = JSON.parse(localStorage.getItem('currentWalk'));
-                currentWalk.positions.push(locationData);
-                localStorage.setItem('currentWalk', JSON.stringify(currentWalk));
-
-                if (dotNetHelper) {
-                    dotNetHelper.invokeMethodAsync('OnLocationUpdate', locationData);
-                }
-
-                syncIfNeeded(currentWalk);
-            },
-            error => console.error(error),
-            {
-                enableHighAccuracy: true,
-                timeout: 5000,
-                maximumAge: 0
-            }
-        );
+        startGeolocationWatch();
     }
 };
 
