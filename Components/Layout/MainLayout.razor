@@ -12,7 +12,13 @@
     <MudPopoverProvider/>
 
     @* Needed for dialogs *@
-    <MudDialogProvider/>
+    <MudDialogProvider
+        CloseButton="true"
+        NoHeader="true"
+        Position="DialogPosition.Center"
+        CloseOnEscapeKey="true"
+        FullWidth="false"
+    />
 
     @* Needed for snackbars *@
     <MudSnackbarProvider/>
