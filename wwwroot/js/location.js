@@ -75,7 +75,7 @@ function startGeolocationWatch() {
             const currentWalk = JSON.parse(localStorage.getItem('currentWalk'));
 
             // Vérifier si suffisamment de temps s'est écoulé depuis le dernier enregistrement
-            if (currentTime - currentWalk.lastRecordedTime >= POSITION_INTERVAL) {
+            if (currentWalk.positions.length === 0 || currentTime - currentWalk.lastRecordedTime >= POSITION_INTERVAL) {
                 const locationData = {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
