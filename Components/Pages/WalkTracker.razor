@@ -2,6 +2,7 @@
 @inject ILocationService LocationService
 @inject IWalkService WalkService
 @inject IJSRuntime JsRuntime
+@using System.Globalization
 @using DogTracker.Interfaces
 @using DogTracker.ViewModels
 @rendermode InteractiveServer
@@ -54,6 +55,7 @@
                            AutoClose="true"
                            DateChanged="OnMonthChanged"
                            Date="@_selectedMonth"
+                           Culture="@CultureInfo.CurrentCulture"
             />
             @if (walkHistory?.Any() == true)
             {

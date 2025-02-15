@@ -1,9 +1,10 @@
-﻿@using DogTracker.Enums
+﻿@using System.Globalization
+@using DogTracker.Enums
 @using DogTracker.Models
 <MudDialog>
     <DialogContent>
         <MudText Typo="Typo.h6" class="mb-4">Ajouter une dépense</MudText>
-        <MudDatePicker @bind-Date="_date" Label="Date" Variant="Variant.Filled" class="mb-4"/>
+        <MudDatePicker @bind-Date="_date" Label="Date" Variant="Variant.Filled" class="mb-4" Culture="@CultureInfo.CurrentCulture"/>
         <MudTextField @bind-Value="_expense.Amount"
                       Label="Montant"
                       InputType="InputType.Telephone"
