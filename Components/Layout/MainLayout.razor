@@ -27,7 +27,7 @@
         <MudAppBar Elevation="1" Color="Color.Surface">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                            OnClick="@DrawerToggle"/>
-            <MudText Typo="Typo.h6">BlazorApp</MudText>
+            <MudImage Src="../../images/MonToutou_Icon.png" Width="90" Height="85" Class="rounded-lg"></MudImage>
             <MudSpacer />
             <MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4 ml-auto" T="bool" ThumbIcon="@(_isDarkMode ? Icons.Material.Filled.NightsStay : Icons.Material.Filled.WbSunny)"/>
             <MudSpacer/>
@@ -36,7 +36,7 @@
         <MudDrawerContainer>
             <MudDrawer @bind-Open="_drawerOpen" Elevation="2" class="vh-100">
                 <MudDrawerHeader>
-                    <MudText Typo="Typo.h6">BlazorApp</MudText>
+                    <MudImage Src="../../images/MonToutou_Icon.png" Width="90" Height="90" Class="rounded-lg"></MudImage>
                 </MudDrawerHeader>
                 <NavMenu/>
             </MudDrawer>
