@@ -3,7 +3,7 @@
   "short_name": "MonToutou",
   "icons": [
     {
-      "src": "https://montoutou-h0bdfdhndcg4dseg.westeurope-01.azurewebsites.net/images/MonToutou_Icon.png",
+      "src": "https://montoutou-h0bdfdhndcg4dseg.westeurope-01.azurewebsites.net/images/MonToutou_Icon_Bg.png",
       "type": "image/png",
       "sizes": "235x235" 
     }
