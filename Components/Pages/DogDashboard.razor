@@ -29,7 +29,7 @@
                     </div>
                     <div class="mt-2 d-flex flex-column align-items-center">
                         <MudText Typo="Typo.body1" Class="fw-bold">@_totalWalksToday</MudText>
-                        <MudText Typo="Typo.caption">@(_totalWalksToday >= 1 ? "Promenades" : "Promenade")</MudText>
+                        <MudText Typo="Typo.caption">@(_totalWalksToday > 1 ? "Promenades" : "Promenade")</MudText>
                     </div>
                 </div>
             }
@@ -63,7 +63,7 @@
                         <MudIcon Icon="@Icons.Material.Filled.Timer" Class="mr-1" />
                         @{
                             var lastWalkDuration = (lastWalk.AdjustedEndTime - lastWalk.AdjustedStartTime).TotalMinutes;
-                            var formattedDuration = lastWalkDuration < 60 ? $"{lastWalkDuration:F0} min" : $"{lastWalkDuration / 60:F0}h{lastWalkDuration % 60:F0}";
+                            var formattedDuration = lastWalkDuration < 60 ? $"{lastWalkDuration:F0} min" : $"{lastWalkDuration / 60:F0}h{lastWalkDuration % 60:00}";
                         }
                         @formattedDuration
                     </MudText>
