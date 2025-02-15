@@ -68,7 +68,7 @@ namespace DogTracker.Components.Pages
             }
             
             var totalMinutes = todayWalks.Sum(w => (w.AdjustedEndTime - w.AdjustedStartTime).TotalMinutes);
-            _totalDurationToday = totalMinutes < 60 ? $"{totalMinutes:F0} min" : $"{totalMinutes / 60:F0}h{totalMinutes % 60:00}";
+            _totalDurationToday = totalMinutes < 60 ? $"{totalMinutes:F0} min" : $"{(int)totalMinutes / 60}h{totalMinutes % 60:00}";
             _totalDistanceToday = todayWalks.Sum(w => w.Distance);
             _totalWalksToday = todayWalks.Count;
         }
