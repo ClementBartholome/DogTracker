@@ -65,8 +65,7 @@ namespace DogTracker.Components.Pages
                 .ToList();
 
             chartData = groupedExpenses.Select(g => (double)g.Total).ToArray();
-            labels = groupedExpenses.Select(g => $"{g.Category} ({g.Total:C}) ({(g.Total / expenseHistory.Sum(e => e.Amount) * 100):F0}%)").ToArray();
-        }
+            labels = groupedExpenses.Select(g => $"{g.Category} ({g.Total.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))}) ({(g.Total / expenseHistory.Sum(e => e.Amount) * 100):F0}%)").ToArray();        }
 
         private async Task OnMonthChanged(DateTime? newMonth)
         {
