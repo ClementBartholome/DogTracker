@@ -10,4 +10,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<Walk?> Walks { get; set; }
     public DbSet<WeightRecord> WeightRecords { get; set; }
     public DbSet<Expense> Expenses { get; set; }
+    public DbSet<Treatment> Treatments { get; set; }
 }

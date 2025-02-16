@@ -154,7 +154,7 @@ namespace DogTracker.Components.Pages
                 { "ShowNotes", true }
             };
 
-            var dialog = await DialogService.ShowAsync<Dialog>("Fin de la promenade", parameters);
+            var dialog = await DialogService.ShowAsync<Dialog.Dialog>("Fin de la promenade", parameters);
             var result = await dialog.Result;
 
             if (result is { Canceled: false, Data: string notes })
@@ -209,7 +209,7 @@ namespace DogTracker.Components.Pages
                 { "Color", Color.Error }
             };
 
-            var dialog = await DialogService.ShowAsync<Dialog>("Suppression", parameters);
+            var dialog = await DialogService.ShowAsync<Dialog.Dialog>("Suppression", parameters);
             var result = await dialog.Result;
 
             if (result is { Canceled: false })

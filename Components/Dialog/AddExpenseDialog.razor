@@ -4,7 +4,8 @@
 <MudDialog>
     <DialogContent>
         <MudText Typo="Typo.h6" class="mb-4">Ajouter une dépense</MudText>
-        <MudDatePicker @bind-Date="_date" Label="Date" Variant="Variant.Filled" class="mb-4" Culture="@CultureInfo.CurrentCulture"/>
+        <MudDatePicker @bind-Date="_date" Label="Date" Variant="Variant.Filled" class="mb-4"
+                       Culture="@CultureInfo.GetCultureInfo("fr-FR")"/>
         <MudTextField @bind-Value="_expense.Amount"
                       Label="Montant"
                       InputType="InputType.Telephone"
@@ -13,23 +14,23 @@
                       class="mb-4"
                       Adornment="Adornment.End"
                       AdornmentIcon="@Icons.Material.Filled.Wallet"/>
-        <MudSelect @bind-Value="_expense.Category" 
-                   Label="Catégorie" 
-                   Variant="Variant.Filled" 
+        <MudSelect @bind-Value="_expense.Category"
+                   Label="Catégorie"
+                   Variant="Variant.Filled"
                    FullWidth="true"
                    class="mb-4"
-                    Adornment="Adornment.End"
+                   Adornment="Adornment.End"
                    AdornmentIcon="@Icons.Material.Filled.Category">
             <MudSelectItem Value="CategoryEnum.Nourriture">Nourriture</MudSelectItem>
             <MudSelectItem Value="CategoryEnum.Vétérinaire">Vétérinaire</MudSelectItem>
             <MudSelectItem Value="CategoryEnum.Accessoires">Accessoires</MudSelectItem>
             <MudSelectItem Value="CategoryEnum.Autre">Autre</MudSelectItem>
         </MudSelect>
-        <MudTextField @bind-Value="_expense.Description" 
-                      Label="Description" 
-                      Variant="Variant.Filled" 
+        <MudTextField @bind-Value="_expense.Description"
+                      Label="Description"
+                      Variant="Variant.Filled"
                       FullWidth="true"
-                      class="mb-4" 
+                      class="mb-4"
                       Adornment="Adornment.End"
                       AdornmentIcon="@Icons.Material.Filled.Description"/>
     </DialogContent>

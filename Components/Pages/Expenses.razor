@@ -3,7 +3,7 @@
 @rendermode InteractiveServer
 
 <MudPaper class="p-4 mb-4">
-    <MudText Typo="Typo.h4" class="mb-4">
+    <MudText Typo="Typo.h5" class="mb-4">
         <MudIcon Icon="@Icons.Material.Filled.Wallet" Size="Size.Large"/>
         Dépenses
     </MudText>
@@ -25,7 +25,7 @@ else
 
         @if (chartData.Length == 0)
         {
-            <MudText Typo="Typo.body1" Class="text-gray-600">Aucune donnée disponible pour le graphique</MudText>
+            <MudText Typo="Typo.body1" Class="text-gray-600 pl-4">Aucune donnée disponible pour le graphique</MudText>
         }
         else
         {
@@ -58,7 +58,7 @@ else
                        AutoClose="true"
                        Date="@_selectedMonth"
                        DateChanged="OnMonthChanged"
-                       Culture="@CultureInfo.CurrentCulture"/>
+                       Culture="@CultureInfo.GetCultureInfo("fr-FR")"/>
         @if (expenseHistory?.Any() == true)
         {
             <MudList T="object">
@@ -96,7 +96,7 @@ else
         }
         else
         {
-            <MudText Typo="Typo.body1" Class="text-gray-600">Aucune dépense enregistrée</MudText>
+            <MudText Typo="Typo.body1" Class="text-gray-600 pl-4">Aucune dépense enregistrée</MudText>
         }
 
     </MudPaper>

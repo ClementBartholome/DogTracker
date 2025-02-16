@@ -9,7 +9,7 @@
 
 
     <MudPaper class="p-4 mb-4">
-        <MudText Typo="Typo.h4" class="mb-4">
+        <MudText Typo="Typo.h5" class="mb-4">
             <MudIcon Icon="@Icons.Material.Filled.Pets" Size="Size.Large" class="mr-2"/>
             Promenades
         </MudText>
@@ -55,7 +55,7 @@
                            AutoClose="true"
                            DateChanged="OnMonthChanged"
                            Date="@_selectedMonth"
-                           Culture="@CultureInfo.CurrentCulture"
+                           Culture="@CultureInfo.GetCultureInfo("fr-FR")"
             />
             @if (walkHistory?.Any() == true)
             {

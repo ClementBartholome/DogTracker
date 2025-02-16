@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using DogTracker.Components.Dialog;
+using Microsoft.AspNetCore.Components;
 using DogTracker.Models;
 using DogTracker.Interfaces;
 using DogTracker.ViewModels;
@@ -121,7 +122,7 @@ namespace DogTracker.Components.Pages
                 { "Color", Color.Error }
             };
 
-            var dialog = await DialogService.ShowAsync<Dialog>("Confirmation", parameters);
+            var dialog = await DialogService.ShowAsync<Dialog.Dialog>("Confirmation", parameters);
             var result = await dialog.Result;
             if (!result.Canceled)
             {

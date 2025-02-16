@@ -1,0 +1,68 @@
+﻿@using System.Globalization
+@using DogTracker.Enums
+@using DogTracker.Models
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6" class="mb-4">Ajouter un traitement</MudText>
+        <MudDatePicker @bind-Date="_date"
+                       Label="Date"
+                       Variant="Variant.Filled"
+                       class="mb-4"
+                       Culture="@CultureInfo.GetCultureInfo("fr-FR")"/>
+        <MudTextField @bind-Value="_treatment.Name"
+                      Label="Nom du traitement"
+                      Variant="Variant.Filled"
+                      FullWidth="true"
+                      class="mb-4"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.Medication"/>
+        <MudSelect @bind-Value="_treatment.Type"
+                   Label="Type"
+                   Variant="Variant.Filled"
+                   FullWidth="true"
+                   class="mb-4"
+                   Adornment="Adornment.End"
+                   AdornmentIcon="@Icons.Material.Filled.Category">
+            <MudSelectItem Value="TreatmentTypeEnum.Vermifuge">Vaccination</MudSelectItem>
+            <MudSelectItem Value="TreatmentTypeEnum.Antiparasite">Vermifuge</MudSelectItem>
+            <MudSelectItem Value="TreatmentTypeEnum.Antibiotique">Antiparasitaire</MudSelectItem>
+            <MudSelectItem Value="TreatmentTypeEnum.Autre">Autre</MudSelectItem>
+        </MudSelect>
+        <MudDatePicker @bind-Date="_treatment.ReminderDate"
+                       Label="Date de rappel (optionnel)"
+                       Variant="Variant.Filled"
+                       class="mb-4"
+                       Culture="@CultureInfo.GetCultureInfo("fr-FR")"/>
+        <MudTextField @bind-Value="_treatment.Comment"
+                      Label="Commentaire"
+                      Variant="Variant.Filled"
+                      FullWidth="true"
+                      class="mb-4"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.Notes"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Annuler</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Submit">Ajouter</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+
+    private static DateTime? _date = DateTime.Today;
+
+    private readonly Treatment _treatment = new()
+    {
+        Date = _date.Value,
+        Name = string.Empty,
+        Type = TreatmentTypeEnum.Vermifuge,
+        Comment = string.Empty,
+        DogId = 1,
+        ReminderDate = null,
+    };
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(_treatment));
+
+    private void Cancel() => MudDialog.Cancel();
+}

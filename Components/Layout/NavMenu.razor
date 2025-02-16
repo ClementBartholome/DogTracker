@@ -1,24 +1,26 @@
 ﻿<MudPaper>
     <MudNavMenu>
-        <MudDivider />
+        <MudDivider/>
         @* <MudNavLink Href="" Match="NavLinkMatch.All"> *@
         @*     <MudIcon Icon="@Icons.Material.Filled.Home" /> Accueil *@
         @* </MudNavLink> *@
         <MudNavLink Href="" Match="NavLinkMatch.All">
-            <MudIcon Icon="@Icons.Material.Filled.Dashboard" /> Tableau de bord
+            <MudIcon Icon="@Icons.Material.Filled.Dashboard"/>
+            Tableau de bord
         </MudNavLink>
         <MudNavLink Href="@($"dog/{_currentDogId}/walk")">
-            <MudIcon Icon="@Icons.Material.Filled.Pets" /> Promenade
+            <MudIcon Icon="@Icons.Material.Filled.Pets"/>
+            Promenade
         </MudNavLink>
         <MudNavLink Href="@($"dog/{_currentDogId}/depenses")">
-            <MudIcon Icon="@Icons.Material.Filled.Wallet" /> Dépenses
+            <MudIcon Icon="@Icons.Material.Filled.Wallet"/>
+            Dépenses
         </MudNavLink>
-        <MudDivider />
-        <MudNavGroup Title="Admin">
-            <MudNavLink Href="@("/admin/utilisateurs")">
-                <MudIcon Icon="@Icons.Material.Filled.People" /> Utilisateurs
-            </MudNavLink>
-        </MudNavGroup>
+        <MudNavLink Href="@($"dog/{_currentDogId}/carnet-sante")">
+            <MudIcon Icon="@Icons.Material.Filled.MedicalServices"/>
+            Carnet de santé
+        </MudNavLink>
+        <MudDivider/>
     </MudNavMenu>
 </MudPaper>
 

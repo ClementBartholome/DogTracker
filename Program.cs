@@ -59,6 +59,7 @@ builder.Services.AddScoped<IDogService, DogService>();
 builder.Services.AddScoped<IWalkService, WalkService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<ITreatmentService, TreatmentService>();
 
 
 var app = builder.Build();
@@ -86,7 +87,6 @@ if (app.Environment.IsDevelopment())
         var dog = new Dog
         {
             Name = "Mango",
-            CurrentWeight = 22.3,
         };
         await dogService.AddDogAsync(dog);
         
