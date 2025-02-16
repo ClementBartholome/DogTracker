@@ -3,8 +3,11 @@
 @using DogTracker.Components.Layout
 @rendermode InteractiveServer
 
-<MudText Typo="Typo.h4" Class="pl-3 pt-3">Tableau de bord</MudText>
+<MudText Typo="Typo.h5" Class="pl-3 pt-3">Tableau de bord</MudText>
 <MudGrid Class="mt-2">
+    <MudItem xs="12" md="3" Class="align-self-center pt-0">
+        <MudImage Src="../../images/mango_icon.png" Class="rounded-circle d-block mx-auto" Style="height: 120px; width: 120px; padding:5px;" Elevation="25"></MudImage>
+    </MudItem>
     <MudItem xs="12" md="3">
         <MudCard Class="p-3">
             <MudText Typo="Typo.subtitle1">Récap des promenades aujourd'hui</MudText>
@@ -52,15 +55,15 @@
                 var lastWalk = _recentWalks.First();
                 <div class="mt-2 d-flex flex-column gap-2 pl-4">
                     <MudText Typo="Typo.body1">
-                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Class="mr-1" />
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Class="mr-1"/>
                         @lastWalk.AdjustedStartTime.ToString("dd/MM/yyyy à HH\\hmm")
                     </MudText>
                     <MudText Typo="Typo.body1">
-                        <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" Class="mr-1" />
+                        <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" Class="mr-1"/>
                         @lastWalk.Distance.ToString("F2") km
                     </MudText>
                     <MudText Typo="Typo.body1">
-                        <MudIcon Icon="@Icons.Material.Filled.Timer" Class="mr-1" />
+                        <MudIcon Icon="@Icons.Material.Filled.Timer" Class="mr-1"/>
                         @{
                             var lastWalkDuration = (lastWalk.AdjustedEndTime - lastWalk.AdjustedStartTime).TotalMinutes;
                             var formattedDuration = lastWalkDuration < 60 ? $"{lastWalkDuration:F0} min" : $"{lastWalkDuration / 60:F0}h{lastWalkDuration % 60:00}";
@@ -88,16 +91,17 @@
                 var currentWeight = _weightHistory.OrderByDescending(w => w.Date).First();
                 <div class="mt-2 pl-4">
                     <MudText Typo="Typo.body1">
-                        <MudIcon Icon="@Icons.Material.Filled.Scale" Class="mr-1" />
+                        <MudIcon Icon="@Icons.Material.Filled.Scale" Class="mr-1"/>
                         @currentWeight.Weight kg
                     </MudText>
-                    <MudText Typo="Typo.body1">Dernière mesure prise le @currentWeight.Date.ToString("dd/MM/yyyy")</MudText>
+                    <MudText Typo="Typo.body1">Dernière mesure prise
+                        le @currentWeight.Date.ToString("dd/MM/yyyy")</MudText>
                 </div>
             }
         </MudCard>
     </MudItem>
 
-    <MudItem xs="12" md="3">
+    <MudItem xs="12" md="3" Class="mb-12">
         <MudCard Class="p-3">
             <MudText Typo="Typo.subtitle1">Dépenses du mois</MudText>
             @if (isLoading)
@@ -112,10 +116,11 @@
             {
                 <div class="mt-2 pl-4">
                     <MudText Typo="Typo.body1">
-                        <MudIcon Icon="@Icons.Material.Filled.Wallet" Class="mr-1" />
+                        <MudIcon Icon="@Icons.Material.Filled.Wallet" Class="mr-1"/>
                         @expenseSummary.MonthlyTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
                     </MudText>
-                    <MudText Typo="Typo.body1">Dernière dépense enregistrée le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy") ?? "N/A")</MudText>
+                    <MudText Typo="Typo.body1">Dernière dépense enregistrée
+                        le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy") ?? "N/A")</MudText>
                 </div>
             }
         </MudCard>
