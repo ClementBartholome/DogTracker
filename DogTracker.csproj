@@ -19,6 +19,9 @@
       <PackageReference Include="MudBlazor" Version="8.0.0" />
       <PackageReference Include="Npgsql" Version="8.0.6" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+      <PackageReference Include="Quartz" Version="3.13.1" />
+      <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.13.1" />
+      <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.1" />
       <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
       <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.1-dev-02308" />
       <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
@@ -32,6 +35,14 @@
       </Content>
       <Content Update="wwwroot\manifest.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Update="OneSignalSDK-v16-ServiceWorker\OneSignalSDKWorker.js">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Update="OneSignalSDKWorker.js">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
     </ItemGroup>
 

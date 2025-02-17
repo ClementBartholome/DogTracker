@@ -24,7 +24,7 @@
     <MudSnackbarProvider/>
 
     <MudLayout>
-        <MudAppBar Elevation="1" Color="Color.Surface">
+        <MudAppBar Class="p-2" Elevation="2" Color="Color.Surface">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                            OnClick="@DrawerToggle"/>
             <MudImage Src="../../images/MonToutou_Icon.png" Width="90" Height="85" Class="rounded-lg"></MudImage>
@@ -43,7 +43,7 @@
         </MudDrawerContainer>
 
         <MudMainContent>
-            <MudContainer MaxWidth="MaxWidth.Large" Class="my-4">
+            <MudContainer MaxWidth="MaxWidth.Large" Style="margin-top: 32px !important;">
                 @Body
             </MudContainer>
         </MudMainContent>

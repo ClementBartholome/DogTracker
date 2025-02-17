@@ -12,6 +12,7 @@ public partial class HealthRecord : ComponentBase
     [Inject] private ITreatmentService TreatmentService { get; set; } = null!;
     [Inject] private ISnackbar Snackbar { get; set; } = null!;
     [Inject] private IDialogService DialogService { get; set; } = null!;
+    [Inject] private NotificationService NotificationService { get; set; } = default!;
     private bool isLoading = true;
     private DateTime? _selectedMonth = DateTime.Today;
     private List<Treatment>? treatments;
@@ -46,6 +47,12 @@ public partial class HealthRecord : ComponentBase
         {
             isLoading = true;
             await TreatmentService.AddTreatmentAsync(dogId, treatment);
+        
+            if (treatment.ReminderDate.HasValue)
+            {
+                await NotificationService.ScheduleReminderNotification(treatment, CancellationToken.None);
+            }
+        
             await LoadTreatments();
             Snackbar.Add("Traitement ajouté avec succès", Severity.Success);
         }

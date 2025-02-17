@@ -5,6 +5,7 @@ using DogTracker.Models;
 using DogTracker.Services;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using Quartz;
 using Serilog;
 using Serilog.Events;
 
@@ -54,12 +55,28 @@ else
         }));
 }
 
+builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<IDogService, DogService>();
 builder.Services.AddScoped<IWalkService, WalkService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<ITreatmentService, TreatmentService>();
+builder.Services.AddScoped<NotificationService>();
+
+builder.Services.AddQuartz();
+
+builder.Services.AddQuartzHostedService(opts => 
+{
+    opts.WaitForJobsToComplete = true;
+});
+            
+builder.Services.AddHttpClient("OneSignalClient", client =>
+{
+    client.BaseAddress = new Uri("https://onesignal.com/"); 
+    client.DefaultRequestHeaders.Add("Authorization", $"Basic {(builder.Environment.IsDevelopment() ? builder.Configuration["OneSignal:ApiKey:Test"] : Environment.GetEnvironmentVariable("APPSETTING_OneSignalApiKey"))}");
+    client.Timeout = TimeSpan.FromSeconds(60);  
+});
 
 
 var app = builder.Build();
