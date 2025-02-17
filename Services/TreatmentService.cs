@@ -5,7 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DogTracker.Services;
 
-public class TreatmentService(AppDbContext context, ILogger<TreatmentService> logger, NotificationService notificationService) : ITreatmentService
+public class TreatmentService(
+    AppDbContext context,
+    ILogger<TreatmentService> logger,
+    NotificationService notificationService) : ITreatmentService
 {
     public async Task<List<Treatment>> GetTreatmentsAsync(int dogId, int year, int month)
     {
@@ -13,14 +16,15 @@ public class TreatmentService(AppDbContext context, ILogger<TreatmentService> lo
         {
             var startDate = new DateTime(year, month, 1).ToUniversalTime();
             var endDate = startDate.AddMonths(1).AddSeconds(-1).ToUniversalTime().AddHours(1);
-            
-            logger.LogInformation("Récupération des traitements pour le chien {DogId} du {StartDate} au {EndDate}", dogId, startDate, endDate);
-            
+
+            logger.LogInformation("Récupération des traitements pour le chien {DogId} du {StartDate} au {EndDate}",
+                dogId, startDate, endDate);
+
             var treatments = await context.Treatments
                 .Where(t => t.DogId == dogId && t.Date >= startDate && t.Date <= endDate)
                 .OrderByDescending(t => t.Date)
                 .ToListAsync();
-            
+
             logger.LogInformation("Traitements récupérés avec succès pour le chien {DogId}", dogId);
             return treatments;
         }
@@ -40,7 +44,7 @@ public class TreatmentService(AppDbContext context, ILogger<TreatmentService> lo
                 .Where(t => t.DogId == dogId)
                 .OrderByDescending(t => t.Date)
                 .FirstOrDefaultAsync();
-            
+
             logger.LogInformation("Dernier traitement récupéré avec succès pour le chien {DogId}", dogId);
             return treatment;
         }
@@ -50,7 +54,7 @@ public class TreatmentService(AppDbContext context, ILogger<TreatmentService> lo
             throw new ApplicationException("Impossible de récupérer le dernier traitement.", ex);
         }
     }
-    
+
     public async Task AddTreatmentAsync(int dogId, Treatment treatment)
     {
         ArgumentNullException.ThrowIfNull(treatment);
@@ -70,7 +74,7 @@ public class TreatmentService(AppDbContext context, ILogger<TreatmentService> lo
             throw new ApplicationException("Impossible d'ajouter le traitement.", ex);
         }
     }
-    
+
     public async Task DeleteTreatmentAsync(int dogId, int treatmentId)
     {
         try
@@ -80,16 +84,24 @@ public class TreatmentService(AppDbContext context, ILogger<TreatmentService> lo
             if (treatment != null)
             {
                 context.Treatments.Remove(treatment);
-                var plannedNotification = await context.Notifications.FirstOrDefaultAsync(n => n.TreatmentId == treatmentId);
-                await notificationService.DeleteScheduledNotificationAsync(plannedNotification?.MessageId!);
+
+                var plannedNotification =
+                    await context.Notifications.FirstOrDefaultAsync(n => n.TreatmentId == treatmentId);
+                if (plannedNotification != null && plannedNotification.PlannedFor > DateTime.Now)
+                {
+                    await notificationService.DeleteScheduledNotificationAsync(plannedNotification?.MessageId!);
+                }
+
                 if (plannedNotification != null) context.Notifications.Remove(plannedNotification);
                 await context.SaveChangesAsync();
-                logger.LogInformation("Traitement {TreatmentId} supprimé avec succès pour le chien {DogId}", treatmentId, dogId);
+                logger.LogInformation("Traitement {TreatmentId} supprimé avec succès pour le chien {DogId}",
+                    treatmentId, dogId);
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Erreur lors de la suppression du traitement {TreatmentId} pour le chien {DogId}", treatmentId, dogId);
+            logger.LogError(ex, "Erreur lors de la suppression du traitement {TreatmentId} pour le chien {DogId}",
+                treatmentId, dogId);
             throw new ApplicationException("Impossible de supprimer le traitement.", ex);
         }
     }

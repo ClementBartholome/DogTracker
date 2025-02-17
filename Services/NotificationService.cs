@@ -20,7 +20,7 @@ public class NotificationService(
     private const string OneSignalApiUrl = "https://api.onesignal.com/notifications";
 
 
-    public async Task SendNotifications(CancellationToken ctk)
+    public async Task SendNotifications(CancellationToken ctk = default)
     {
         try
         {
@@ -36,7 +36,7 @@ public class NotificationService(
         }
     }
 
-    private async Task SendOneSignalNotification(CancellationToken ctk)
+    private async Task SendOneSignalNotification(CancellationToken ctk = default)
     {
         var notification = new
         {
@@ -64,7 +64,7 @@ public class NotificationService(
         }
     }
 
-    public async Task ScheduleReminderNotification(Treatment treatment, CancellationToken ctk)
+    public async Task ScheduleReminderNotification(Treatment treatment, CancellationToken ctk = default)
     {
         if (!treatment.ReminderDate.HasValue) return;
 
