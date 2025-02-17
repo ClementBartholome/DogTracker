@@ -3,12 +3,15 @@
 @rendermode InteractiveServer
 
 <MudText Typo="Typo.h5" Class="pl-3 pt-3 mb-4">
-    <MudIcon Icon="@Icons.Material.Filled.MedicalServices" Size="Size.Large" Class="mr-2"/>
+    @* <MudIcon Icon="@Icons.Material.Filled.MedicalServices" Size="Size.Large" Class="mr-2 icon-circle"/> *@
     Données médicales
 </MudText>
-<MudPaper Class="p-4 mb-4">
+<MudPaper Class="p-4 mb-4" Elevation="3">
     <div class="d-flex justify-space-between align-center mb-4">
-        <MudText Typo="Typo.h6">Traitements</MudText>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.MedicationLiquid" Size="Size.Large" Class="mr-2 icon-circle"/>
+            Traitements
+        </MudText>
         <MudButton OnClick="OpenAddTreatmentDialog"
                    Color="Color.Primary"
                    Variant="Variant.Filled"
@@ -49,7 +52,7 @@
                                        Size="Size.Small"
                                        OnClick="@(() => ConfirmDeleteTreatment(treatment.Id))"/>
                     </div>
-                    <div class="d-flex flex-wrap mt-2">
+                    <div class="d-flex flex-wrap mt-2 gap-2">
                         <MudText Typo="Typo.body2" Class="text-gray-600 mr-4">
                             <MudIcon Icon="@Icons.Material.Filled.Medication" Class="mr-1"/>
                             @treatment.Name
@@ -81,6 +84,68 @@
     {
         <MudText Typo="Typo.body1" Class="text-gray-600 pl-4">
             Aucun traitement enregistré
+        </MudText>
+    }
+</MudPaper>
+
+<MudPaper Class="p-4 mb-4" Elevation="3">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.MonitorWeight" Size="Size.Large" Class="mr-2 icon-circle"/>
+            Poids
+        </MudText>
+        <MudButton OnClick="OpenAddWeightDialog"
+                   Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   Class="ml-auto">
+            <MudIcon Icon="@Icons.Material.Filled.Add"/>
+        </MudButton>
+    </div>
+
+    @* <MudDatePicker OpenTo="OpenTo.Month" *@
+    @*                FixYear="DateTime.Now.Year" *@
+    @*                FixDay="1" *@
+    @*                DateFormat="MMM/yy" *@
+    @*                Class="mb-4" *@
+    @*                ShowToolbar="false" *@
+    @*                AutoClose="true" *@
+    @*                Date="@_selectedWeightMonth" *@
+    @*                DateChanged="OnWeightMonthChanged" *@
+    @*                Culture="@CultureInfo.GetCultureInfo("fr-FR")"/> *@
+
+    @if (isLoadingWeights)
+    {
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
+    }
+    else if (weightRecords?.Any() == true)
+    {
+        <MudList T="object">
+            @foreach (var weight in weightRecords.OrderByDescending(w => w.Date))
+            {
+                <MudListItem>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <MudText Typo="Typo.subtitle1">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Class="mr-1"/>
+                            @weight.Date.ToString("dd/MM/yyyy")
+                        </MudText>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Variant="Variant.Outlined"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       OnClick="@(() => ConfirmDeleteWeight(weight.Id))"/>
+                    </div>
+                    <MudText Typo="Typo.body2" Class="text-gray-600 mt-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Scale" Class="mr-1"/>
+                        @weight.Weight kg
+                    </MudText>
+                </MudListItem>
+            }
+        </MudList>
+    }
+    else
+    {
+        <MudText Typo="Typo.body1" Class="text-gray-600 pl-4">
+            Aucun poids enregistré
         </MudText>
     }
 </MudPaper>

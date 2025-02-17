@@ -63,13 +63,14 @@ builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<ITreatmentService, TreatmentService>();
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<IWeightService, WeightService>();
 
-builder.Services.AddQuartz();
-
-builder.Services.AddQuartzHostedService(opts => 
-{
-    opts.WaitForJobsToComplete = true;
-});
+// builder.Services.AddQuartz();
+//
+// builder.Services.AddQuartzHostedService(opts => 
+// {
+//     opts.WaitForJobsToComplete = true;
+// });
             
 builder.Services.AddHttpClient("OneSignalClient", client =>
 {
@@ -97,6 +98,7 @@ if (app.Environment.IsDevelopment())
     var context = services.GetRequiredService<AppDbContext>();
     context.Database.Migrate();
     var dogService = services.GetRequiredService<IDogService>();
+    var weightService = services.GetRequiredService<IWeightService>();
     var dogs = await context.Dogs.ToListAsync(); 
 
     if (dogs.Count == 0)
@@ -113,7 +115,7 @@ if (app.Environment.IsDevelopment())
             Weight = 22.3,
             DogId = 1
         };
-        await dogService.AddWeightRecordAsync(dog.Id, weightRecord);
+        await weightService.AddWeightRecordAsync(dog.Id, weightRecord);
     }
 }
 
