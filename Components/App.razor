@@ -16,13 +16,16 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
+        @inject IConfiguration Configuration
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         OneSignalDeferred.push(async function(OneSignal) {
+            const appId = '@(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production" ? Environment.GetEnvironmentVariable("APPSETTING_OneSignalAppId") : Configuration["OneSignal:AppId:Test"])';
             await OneSignal.init({
-                appId: "50480607-4e45-4d52-9808-3a34563a116d",
+                appId: appId,
                 allowLocalhostAsSecureOrigin: true,
             });
         });
+    
     </script>
     <HeadOutlet/>
     <title>MonToutou</title>
