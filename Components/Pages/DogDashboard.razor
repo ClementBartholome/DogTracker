@@ -82,20 +82,19 @@
             {
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="60px"/>
             }
-            else if (!_weightHistory.Any())
+            else if (false)
             {
                 <MudText Typo="Typo.body1" Class="pl-4">Aucun poids enregistré</MudText>
             }
             else
             {
-                var currentWeight = _weightHistory.OrderByDescending(w => w.Date).First();
                 <div class="mt-2 pl-4">
                     <MudText Typo="Typo.body1">
                         <MudIcon Icon="@Icons.Material.Filled.Scale" Class="mr-1"/>
-                        @currentWeight.Weight kg
+                        @_currentWeight.Weight kg
                     </MudText>
                     <MudText Typo="Typo.body1">Dernière mesure prise
-                        le @currentWeight.Date.ToString("dd/MM/yyyy")</MudText>
+                        le @_currentWeight.Date.ToString("dd/MM/yyyy")</MudText>
                 </div>
             }
         </MudCard>
@@ -126,5 +125,3 @@
         </MudCard>
     </MudItem>
 </MudGrid>
-
-<RadialMenu/>

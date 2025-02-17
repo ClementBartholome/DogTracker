@@ -9,17 +9,17 @@ namespace DogTracker.Components.Pages
     public partial class DogDashboard
     {
         [Parameter] public int DogId { get; set; } = 1;
-        [Inject] private IDogService DogService { get; set; } = null!;
+        [Inject] private IWeightService WeightService { get; set; } = null!;
         [Inject] private IWalkService WalkService { get; set; } = null!;
         [Inject] private IExpenseService ExpenseService { get; set; } = null!;
         
         private List<WalkViewModel> _recentWalks = [];
-        private List<WeightRecord> _weightHistory = [];
+        private WeightRecord _currentWeight = new();
         private List<Expense> _expenses = [];
         private string? _totalDurationToday;
         private double _totalDistanceToday;
         private int _totalWalksToday;
-        private bool isLoading = false;
+        private bool isLoading;
         private ExpenseSummaryViewModel expenseSummary = new();
 
 
@@ -30,7 +30,7 @@ namespace DogTracker.Components.Pages
             var walks = await WalkService.GetRecentWalksAsync(DogId);
             _recentWalks = walks.Select(w => new WalkViewModel(w)).ToList();
             
-            _weightHistory = await DogService.GetWeightHistoryAsync(DogId);
+            _currentWeight = await WeightService.GetLastWeightRecord(DogId);
             _expenses = await ExpenseService.GetExpensesAsync(DogId, DateTime.Now.Year, DateTime.Now.Month);
             CalculateTodayStats();
             PrepareExpenseSummary();

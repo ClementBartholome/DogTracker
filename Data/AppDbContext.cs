@@ -11,4 +11,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     public DbSet<WeightRecord> WeightRecords { get; set; }
     public DbSet<Expense> Expenses { get; set; }
     public DbSet<Treatment> Treatments { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 }

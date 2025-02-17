@@ -2,17 +2,17 @@
 @using System.Globalization
 @rendermode InteractiveServer
 
-<MudPaper class="p-4 mb-4">
-    <MudText Typo="Typo.h5" class="mb-4">
-        <MudIcon Icon="@Icons.Material.Filled.Wallet" Size="Size.Large"/>
+    <div class="d-flex justify-space-between align-center mb-6 pl-3 pt-3">
+    <MudText Typo="Typo.h5">
+        <MudIcon Icon="@Icons.Material.Filled.Wallet" Size="Size.Large" Class="icon-circle"/>
         Dépenses
     </MudText>
     <MudButton OnClick="OpenAddExpenseDialog"
                Color="Color.Primary" Variant="Variant.Filled"
-               class="w-full text-white font-bold py-3 rounded-lg">
-        Ajouter une dépense
+               Class="ml-auto">
+        <MudIcon Icon="@Icons.Material.Filled.Add"/>
     </MudButton>
-</MudPaper>
+    </div>
 
 @if (isLoading)
 {
@@ -20,7 +20,7 @@
 }
 else
 {
-    <MudPaper Class="p-4 mb-4">
+    <MudPaper Class="p-4 mb-4" Elevation="3">
         <MudText Typo="Typo.h6" class="mb-2">Répartition des dépenses</MudText>
 
         @if (chartData.Length == 0)
@@ -47,7 +47,7 @@ else
 }
 else
 {
-    <MudPaper Class="p-4 mb-4">
+    <MudPaper Class="p-4 mb-4" Elevation="3">
         <MudText Typo="Typo.h6">Historique des dépenses</MudText>
         <MudDatePicker OpenTo="OpenTo.Month"
                        FixYear="DateTime.Now.Year"
@@ -102,7 +102,7 @@ else
     </MudPaper>
 }
 
-<MudPaper Class="p-4 mb-4">
+<MudPaper Class="p-4 mb-4" Elevation="3">
     <MudText Typo="Typo.h6">Dépenses du mois</MudText>
     @if (expenseSummary.MonthlyTotal == 0)
     {

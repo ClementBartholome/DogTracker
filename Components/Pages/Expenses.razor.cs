@@ -76,6 +76,13 @@ namespace DogTracker.Components.Pages
                 var startDate = new DateTime(_selectedMonth.Value.Year, _selectedMonth.Value.Month, 1);
                 expenseHistory = await ExpenseService.GetExpensesAsync(dogId, startDate.Year, startDate.Month);
                 PrepareChartData();
+                expenseSummary.MonthlyTotal = expenseHistory
+                    .Where(e => e.Date.Month == startDate.Month)
+                    .Sum(e => e.Amount);
+                expenseSummary.LastExpenseDate = expenseHistory
+                    .OrderByDescending(e => e.Date)
+                    .FirstOrDefault()?.Date
+                    .AddHours(1);
             }
 
             StateHasChanged();

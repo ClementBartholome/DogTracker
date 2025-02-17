@@ -8,9 +8,9 @@
 @rendermode InteractiveServer
 
 
-    <MudPaper class="p-4 mb-4">
+    <MudPaper class="p-4 mb-4" Elevation="3">
         <MudText Typo="Typo.h5" class="mb-4">
-            <MudIcon Icon="@Icons.Material.Filled.Pets" Size="Size.Large" class="mr-2"/>
+            <MudIcon Icon="@Icons.Material.Filled.Pets" Size="Size.Large" class="mr-2 icon-circle"/>
             Promenades
         </MudText>
         @if (!isTracking)
@@ -44,7 +44,7 @@
     }
     else
     {
-        <MudPaper Class="p-4 mb-4">
+        <MudPaper Class="p-4 mb-4" Elevation="3">
             <MudText Typo="Typo.h6">Historique des promenades</MudText>
             <MudDatePicker OpenTo="OpenTo.Month"
                            FixYear="DateTime.Now.Year"

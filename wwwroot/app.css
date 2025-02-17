@@ -53,3 +53,9 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+.icon-circle {
+    border-radius: 50%;
+    background-color: var(--mud-palette-primary-lighten);
+    padding: 5px;
+}

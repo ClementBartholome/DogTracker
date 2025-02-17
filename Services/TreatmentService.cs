@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DogTracker.Services;
 
-public class TreatmentService(AppDbContext context, ILogger<TreatmentService> logger) : ITreatmentService
+public class TreatmentService(AppDbContext context, ILogger<TreatmentService> logger, NotificationService notificationService) : ITreatmentService
 {
     public async Task<List<Treatment>> GetTreatmentsAsync(int dogId, int year, int month)
     {
@@ -80,6 +80,9 @@ public class TreatmentService(AppDbContext context, ILogger<TreatmentService> lo
             if (treatment != null)
             {
                 context.Treatments.Remove(treatment);
+                var plannedNotification = await context.Notifications.FirstOrDefaultAsync(n => n.TreatmentId == treatmentId);
+                await notificationService.DeleteScheduledNotificationAsync(plannedNotification?.MessageId!);
+                if (plannedNotification != null) context.Notifications.Remove(plannedNotification);
                 await context.SaveChangesAsync();
                 logger.LogInformation("Traitement {TreatmentId} supprimé avec succès pour le chien {DogId}", treatmentId, dogId);
             }
