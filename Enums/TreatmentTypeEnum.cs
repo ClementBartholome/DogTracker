@@ -3,7 +3,7 @@
 public enum TreatmentTypeEnum
 {
     Vermifuge,
-    Antiparasite,
+    Antipuce,
     Antibiotique,
     Autre
 }
