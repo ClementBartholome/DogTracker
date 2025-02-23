@@ -106,8 +106,8 @@
     private List<NotificationViewModel> _notifications = [];
     private int _notificationCount;
     private bool _notificationsOpen;
-    public Origin TransformOrigin { get; set; } = Origin.TopRight;
-    public Origin AnchorOrigin { get; set; } = Origin.TopRight;
+    private Origin TransformOrigin { get; set; } = Origin.TopRight;
+    private Origin AnchorOrigin { get; set; } = Origin.TopRight;
 
     void DrawerToggle()
     {
@@ -127,15 +127,7 @@
 
     private async Task CheckNotifications()
     {
-        var fakeNotifications =  new List<NotificationViewModel>
-        {
-            new() { Content = "N'oublie pas le traitement aaaaaa aujourd'hui aaaaaaaa !", PlannedFor = DateTime.Today, TreatmentId = 1},
-            new() { Content = "N'oublie pas le traitement aaaaaa aujourd'hui !", PlannedFor = DateTime.Today, TreatmentId = 2},
-            new() { Content = "N'oublie pas le traitement aaaaaa aujourd'hui !", PlannedFor = DateTime.Today, TreatmentId = 3},
-        };
-        
-        // _notifications = await NotificationService.GetTodayNotifications();
-        _notifications = fakeNotifications;
+        _notifications = await NotificationService.GetTodayNotifications();
         _notificationCount = _notifications.Count;
     }
 }
