@@ -137,8 +137,11 @@ public class NotificationService(
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             
+            var utcDateToLocal = DateTime.UtcNow.AddHours(1);
+
+            
             var notifications = await dbContext.Notifications
-                .Where(n => n.PlannedFor.Date == DateTime.UtcNow.Date.AddDays(2))
+                .Where(n => n.PlannedFor.Date == utcDateToLocal.Date)
                 .ToListAsync(ctk);
             
             var notificationsViewModel = notifications.Select(n => new NotificationViewModel

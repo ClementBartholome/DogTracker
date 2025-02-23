@@ -47,7 +47,7 @@
             </MudBadge>
             <MudPopover Open="_notificationsOpen" Fixed="true" Class="mt-16" Style="z-index: 1000; max-width: 300px"
                         AnchorOrigin="@AnchorOrigin" TransformOrigin="@TransformOrigin">
-                <MudList T="object" Dense="true" Class="pa-2" Style="max-width: 350px" Gutters="true" Padding="true">
+                <MudList T="object" Dense="true" Class="pa-2" Style="max-width: 360px" Gutters="true" Padding="true">
                     @if (_notifications.Any())
                     {
                         @foreach (var notification in _notifications)
