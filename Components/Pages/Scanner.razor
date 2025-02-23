@@ -1,0 +1,157 @@
+﻿@page "/scanner"
+@using System.IO
+@inject IJSRuntime JSRuntime
+@inject IWebHostEnvironment Environment
+@implements IAsyncDisposable
+@rendermode InteractiveServer
+
+<div class="scanner-container">
+    @if (!isCaptureMode)
+    {
+        <button class="btn btn-primary" @onclick="StartScanning">Scanner un document</button>
+        
+        @if (scannedFiles.Any())
+        {
+            <div class="scanned-files">
+                <h3>Documents scannés</h3>
+                @foreach (var file in scannedFiles)
+                {
+                    <div class="scanned-file">
+                        <img src="@file.PreviewUrl" alt="Scan preview" />
+                        <div class="actions">
+                            <a href="@file.DownloadUrl" download class="btn btn-secondary">Télécharger</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="camera-container">
+            <video id="camera-preview" autoplay playsinline></video>
+            
+            @if (previewImage != null)
+            {
+                <div class="preview-container">
+                    <img src="@previewImage" alt="Preview" />
+                    <div class="preview-actions">
+                        <button class="btn btn-success" @onclick="SaveScan">Sauvegarder le scan</button>
+                        <button class="btn btn-secondary" @onclick="RetakePhoto">Reprendre la photo</button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <button class="btn btn-primary" @onclick="CapturePhoto" @onclick:preventDefault>Prendre la photo</button>
+            }
+            
+            <button class="btn btn-danger" @onclick="StopScanning">Annuler</button>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isCaptureMode = false;
+    private string? previewImage;
+    private List<ScannedFile> scannedFiles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadExistingFiles();
+    }
+
+    private async Task LoadExistingFiles()
+    {
+        var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads");
+        if (Directory.Exists(uploadsPath))
+        {
+            var files = Directory.GetFiles(uploadsPath, "scan-*.jpg")
+                                .Select(f => new ScannedFile
+                                {
+                                    PreviewUrl = $"/uploads/{Path.GetFileName(f)}",
+                                    DownloadUrl = $"/uploads/{Path.GetFileName(f)}"
+                                })
+                                .ToList();
+            scannedFiles = files;
+        }
+    }
+
+    private async Task StartScanning()
+    {
+        isCaptureMode = true;
+        await JSRuntime.InvokeVoidAsync("initializeCamera", DotNetObjectReference.Create(this));
+    }
+
+    private async Task CapturePhoto()
+    {
+        previewImage = await JSRuntime.InvokeAsync<string>("takePhoto");
+        Console.WriteLine("Preview image: " + previewImage);
+    }
+
+    [JSInvokable]
+    private void OnPhotoTaken(string data)
+    {
+        previewImage = data;
+    }
+
+    private async Task SaveScan()
+    {
+        if (string.IsNullOrEmpty(previewImage))
+            return;
+
+        var base64Data = previewImage.Split(',')[1];
+        var imageBytes = Convert.FromBase64String(base64Data);
+        
+        // Créer le dossier uploads s'il n'existe pas
+        var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads");
+        Directory.CreateDirectory(uploadsPath);
+        
+        // Générer un nom de fichier unique
+        var fileName = $"scan-{DateTime.Now:yyyyMMddHHmmss}.jpg";
+        var filePath = Path.Combine(uploadsPath, fileName);
+        
+        // Sauvegarder le fichier
+        await File.WriteAllBytesAsync(filePath, imageBytes);
+        
+        // Ajouter à la liste des fichiers scannés
+        scannedFiles.Add(new ScannedFile
+        {
+            PreviewUrl = $"/uploads/{fileName}",
+            DownloadUrl = $"/uploads/{fileName}"
+        });
+        
+        // Réinitialiser l'interface
+        previewImage = null;
+        isCaptureMode = false;
+        await StopCamera();
+    }
+
+    private async Task RetakePhoto()
+    {
+        previewImage = null;
+    }
+
+    private async Task StopScanning()
+    {
+        isCaptureMode = false;
+        previewImage = null;
+        await StopCamera();
+    }
+
+    private async Task StopCamera()
+    {
+        await JSRuntime.InvokeVoidAsync("stopCamera");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await StopCamera();
+    }
+
+    private class ScannedFile
+    {
+        public string PreviewUrl { get; set; }
+        public string DownloadUrl { get; set; }
+    }
+}
