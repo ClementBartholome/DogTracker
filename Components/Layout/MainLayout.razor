@@ -30,26 +30,20 @@
         <MudAppBar Class="p-2" Elevation="2" Color="Color.Surface">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit"
                            OnClick="@DrawerToggle"/>
-            <MudImage Src="../../images/MonToutou_Icon.png" Width="90" Height="85" Class="rounded-lg"></MudImage>
+            <a href="/">
+                <MudImage Src="../../images/MonToutou_Icon.png" Width="90" Height="85" Class="rounded-lg"></MudImage>
+            </a>
             <MudSpacer/>
             <MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4 ml-auto" T="bool"
                        ThumbIcon="@(_isDarkMode ? Icons.Material.Filled.NightsStay : Icons.Material.Filled.WbSunny)"/>
             <MudSpacer/>
-            @* @if (_notificationCount > 0) *@
-            @* { *@
-            @*     <MudBadge Overlap="true" Content="@_notificationCount" Color="Color.Error"> *@
-            @*         <MudIconButton Icon="@Icons.Material.Filled.Notifications" Style="padding:6px !important;"> *@
-            @*         </MudIconButton> *@
-            @*     </MudBadge> *@
-            @* } *@
-            @* else *@
-            @* { *@
-            @*     <MudIconButton Icon="@Icons.Material.Filled.Notifications"> *@
-            @*     </MudIconButton> *@
-            @* } *@
             <MudBadge Overlap="true" Content="@_notificationCount" Color="Color.Error">
-                <MudIconButton Icon="@Icons.Material.Filled.Notifications" Style="padding:6px !important;" OnClick="@(() => _notificationsOpen = !_notificationsOpen)">
-                </MudIconButton>
+                <MudToggleIconButton @bind-Toggled="_notificationsOpen"
+                                     Icon="@Icons.Material.Filled.NotificationsNone"
+                                     Color="Color.Default"
+                                     ToggledIcon="@Icons.Material.Filled.Notifications"
+                                     ToggledColor="Color.Default"
+                                     />
             </MudBadge>
             <MudPopover Open="_notificationsOpen" Fixed="true" Class="mt-16" Style="z-index: 1000; max-width: 300px"
                         AnchorOrigin="@AnchorOrigin" TransformOrigin="@TransformOrigin">
@@ -111,7 +105,6 @@
 
     void DrawerToggle()
     {
-        Console.WriteLine("Drawer toggled");
         _drawerOpen = !_drawerOpen;
     }
 
@@ -130,4 +123,5 @@
         _notifications = await NotificationService.GetTodayNotifications();
         _notificationCount = _notifications.Count;
     }
+
 }
