@@ -2,6 +2,8 @@
 using System.Text.Json;
 using DogTracker.Data;
 using DogTracker.Models;
+using DogTracker.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace DogTracker.Services;
 
@@ -24,9 +26,6 @@ public class NotificationService(
     {
         try
         {
-            using var scope = serviceProvider.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
             await SendOneSignalNotification(ctk);
         }
         catch (Exception ex)
@@ -128,6 +127,35 @@ public class NotificationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error deleting scheduled notification {MessageId}", messageId);
+            throw;
+        }
+    }
+    public async Task<List<NotificationViewModel>> GetTodayNotifications(CancellationToken ctk = default)
+    {
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            
+            var notifications = await dbContext.Notifications
+                .Where(n => n.PlannedFor.Date == DateTime.UtcNow.Date.AddDays(2))
+                .ToListAsync(ctk);
+            
+            var notificationsViewModel = notifications.Select(n => new NotificationViewModel
+            {
+                Id = n.Id,
+                CreatedAt = n.CreatedAt,
+                PlannedFor = n.PlannedFor,
+                Content = n.Content,
+                MessageId = n.MessageId,
+                TreatmentId = n.TreatmentId
+            }).ToList();
+            logger.LogInformation("Notifications du jour récupérées avec succès");
+            return notificationsViewModel;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erreur lors de la récupération des notifications du jour");
             throw;
         }
     }

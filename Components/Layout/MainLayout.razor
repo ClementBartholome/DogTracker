@@ -1,5 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@using DogTracker.ViewModels
+@using DogTracker.Services
+@inherits LayoutComponentBase
 @rendermode InteractiveAuto
+@inject NotificationService NotificationService;
 
 
 @* <div class="sidebar"> *@
@@ -25,31 +28,70 @@
 
     <MudLayout>
         <MudAppBar Class="p-2" Elevation="2" Color="Color.Surface">
-            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit"
                            OnClick="@DrawerToggle"/>
             <MudImage Src="../../images/MonToutou_Icon.png" Width="90" Height="85" Class="rounded-lg"></MudImage>
-            <MudSpacer />
-            <MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4 ml-auto" T="bool" ThumbIcon="@(_isDarkMode ? Icons.Material.Filled.NightsStay : Icons.Material.Filled.WbSunny)"/>
             <MudSpacer/>
+            <MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4 ml-auto" T="bool"
+                       ThumbIcon="@(_isDarkMode ? Icons.Material.Filled.NightsStay : Icons.Material.Filled.WbSunny)"/>
+            <MudSpacer/>
+            @* @if (_notificationCount > 0) *@
+            @* { *@
+            @*     <MudBadge Overlap="true" Content="@_notificationCount" Color="Color.Error"> *@
+            @*         <MudIconButton Icon="@Icons.Material.Filled.Notifications" Style="padding:6px !important;"> *@
+            @*         </MudIconButton> *@
+            @*     </MudBadge> *@
+            @* } *@
+            @* else *@
+            @* { *@
+            @*     <MudIconButton Icon="@Icons.Material.Filled.Notifications"> *@
+            @*     </MudIconButton> *@
+            @* } *@
+            <MudBadge Overlap="true" Content="@_notificationCount" Color="Color.Error">
+                <MudIconButton Icon="@Icons.Material.Filled.Notifications" Style="padding:6px !important;" OnClick="@(() => _notificationsOpen = !_notificationsOpen)">
+                </MudIconButton>
+            </MudBadge>
+            <MudPopover Open="_notificationsOpen" Fixed="true" Class="mt-16" Style="z-index: 1000; max-width: 300px"
+                        AnchorOrigin="@AnchorOrigin" TransformOrigin="@TransformOrigin">
+                <MudList T="object" Dense="true" Class="pa-2" Style="max-width: 350px" Gutters="true" Padding="true">
+                    @if (_notifications.Any())
+                    {
+                        @foreach (var notification in _notifications)
+                        {
+                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@notification.Title</MudText>
+                            <MudListItem Text="@notification.Content"/>
+                            @if (notification != _notifications.Last())
+                            {
+                                <MudDivider/>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Class="pa-2">Aucune notification</MudText>
+                    }
+                </MudList>
+            </MudPopover>
         </MudAppBar>
-
         <MudDrawerContainer>
             <MudDrawer @bind-Open="_drawerOpen" Elevation="2" class="vh-100">
                 <MudDrawerHeader>
-                    <MudImage Src="../../images/MonToutou_Icon.png" Width="90" Height="90" Class="rounded-lg"></MudImage>
+                    <MudImage Src="../../images/MonToutou_Icon.png" Width="90" Height="90"
+                              Class="rounded-lg"></MudImage>
                 </MudDrawerHeader>
                 <NavMenu/>
             </MudDrawer>
         </MudDrawerContainer>
 
         <MudMainContent>
-            <MudContainer MaxWidth="MaxWidth.Large" Style="margin-top: 32px !important; padding-bottom: 32px !important;">
+            <MudContainer MaxWidth="MaxWidth.Large"
+                          Style="margin-top: 32px !important; padding-bottom: 32px !important;">
                 @Body
             </MudContainer>
         </MudMainContent>
     </MudLayout>
     <RadialMenu/>
-    </main>
+</main>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
@@ -59,24 +101,41 @@
 
 @code {
     private bool _drawerOpen;
+    private bool _isDarkMode;
+    private MudThemeProvider _mudThemeProvider;
+    private List<NotificationViewModel> _notifications = [];
+    private int _notificationCount;
+    private bool _notificationsOpen;
+    public Origin TransformOrigin { get; set; } = Origin.TopRight;
+    public Origin AnchorOrigin { get; set; } = Origin.TopRight;
 
     void DrawerToggle()
     {
         Console.WriteLine("Drawer toggled");
         _drawerOpen = !_drawerOpen;
     }
-    
-    private bool _isDarkMode;
-    private MudThemeProvider _mudThemeProvider;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             _isDarkMode = await _mudThemeProvider.GetSystemPreference();
+            await CheckNotifications();
             StateHasChanged();
         }
     }
 
-
+    private async Task CheckNotifications()
+    {
+        var fakeNotifications =  new List<NotificationViewModel>
+        {
+            new() { Content = "N'oublie pas le traitement aaaaaa aujourd'hui aaaaaaaa !", PlannedFor = DateTime.Today, TreatmentId = 1},
+            new() { Content = "N'oublie pas le traitement aaaaaa aujourd'hui !", PlannedFor = DateTime.Today, TreatmentId = 2},
+            new() { Content = "N'oublie pas le traitement aaaaaa aujourd'hui !", PlannedFor = DateTime.Today, TreatmentId = 3},
+        };
+        
+        // _notifications = await NotificationService.GetTodayNotifications();
+        _notifications = fakeNotifications;
+        _notificationCount = _notifications.Count;
+    }
 }
