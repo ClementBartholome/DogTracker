@@ -55,7 +55,7 @@ public class WeightService(AppDbContext context, ILogger<WeightService> logger) 
         try
         {
             weight.DogId = dogId;
-            weight.Date = weight.Date.ToUniversalTime().AddHours(1);
+            weight.Date = weight.Date.ToUniversalTime().AddHours(2);
             context.WeightRecords.Add(weight);
             await context.SaveChangesAsync();
             logger.LogInformation("Poids ajouté avec succès pour le chien {DogId}", dogId);
