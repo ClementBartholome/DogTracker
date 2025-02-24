@@ -1,157 +1,149 @@
-﻿@page "/scanner"
-@using System.IO
-@inject IJSRuntime JSRuntime
-@inject IWebHostEnvironment Environment
-@implements IAsyncDisposable
+﻿@page "/dog/{dogId:int}/documents"
+@using DogTracker.Enums
 @rendermode InteractiveServer
 
-<div class="scanner-container">
+<div class="d-flex justify-space-between align-center mb-6 pl-3 pt-3">
+    <MudText Typo="Typo.h5">
+        <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Size="Size.Large" Class="icon-circle"/>
+        Documents
+    </MudText>
+    <MudButton
+        Color="Color.Primary" Variant="Variant.Filled"
+        Class="ml-auto"
+        OnClick="@(() => OpenDrawer(Anchor.Bottom))">
+        <MudIcon Icon="@Icons.Material.Filled.Add"/>
+    </MudButton>
+</div>
+
+<MudDrawer @bind-Open="@_open" Anchor="@_anchor" Elevation="3" Variant="@DrawerVariant.Temporary"
+           OverlayAutoClose="@_overlayAutoClose" Class="rounded-top">
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6">Ajouter un document</MudText>
+    </MudDrawerHeader>
+    <MudDrawerContainer Class="m-auto w-75">
+        <MudButton StartIcon="@Icons.Material.Filled.CameraAlt" Variant="Variant.Filled" Color="Color.Primary"
+                   OnClick="StartScanning" Class="w-100 mb-4">Scanner un document
+        </MudButton>
+        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles" Class="w-100 mb-4">
+            <ActivatorContent>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.CloudUpload"
+                           Class="w-100">
+                    Télécharger un fichier
+                </MudButton>
+            </ActivatorContent>
+        </MudFileUpload>
+    </MudDrawerContainer>
+</MudDrawer>
+
+<MudContainer Class="scanner-container">
     @if (!isCaptureMode)
     {
-        <button class="btn btn-primary" @onclick="StartScanning">Scanner un document</button>
-        
         @if (scannedFiles.Any())
         {
-            <div class="scanned-files">
-                <h3>Documents scannés</h3>
-                @foreach (var file in scannedFiles)
+            <MudChipSet T="TypeFilesEnum" @bind-SelectedValue="_filterCategory" Class="mb-2">
+                <MudChip Text="Tous" Color="Color.Default" Default="true" Value="@((TypeFilesEnum)(-1))">Tous</MudChip>
+                @foreach (var category in TypeFilesEnumExtensions.GetCategories())
                 {
-                    <div class="scanned-file">
-                        <img src="@file.PreviewUrl" alt="Scan preview" />
-                        <div class="actions">
-                            <a href="@file.DownloadUrl" download class="btn btn-secondary">Télécharger</a>
-                        </div>
-                    </div>
+                    var chipColor = GetChipColor(category.Key);
+                    <MudChip Text="@category.Value"
+                             Color="@chipColor"
+                             Value="@category.Key">@category.Value</MudChip>
                 }
-            </div>
+            </MudChipSet>
+
+            <MudGrid>
+                @{
+                    var filesToShow = _filterCategory != (TypeFilesEnum)(-1)
+                        ? scannedFiles.Where(f => f.Category == _filterCategory).ToList()
+                        : scannedFiles;
+                }
+
+                @if (!filesToShow.Any())
+                {
+                    <MudItem xs="12">
+                        <MudAlert Severity="Severity.Info">Aucun document dans cette catégorie.</MudAlert>
+                    </MudItem>
+                }
+                else
+                {
+                    @foreach (var file in filesToShow)
+                    {
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudCard Elevation="2">
+                                <MudCardMedia Image="@file.PreviewUrl" Height="200"/>
+                                <MudCardContent>
+                                    <MudChip T="TypeFilesEnum" Size="Size.Small"
+                                             Color="@GetChipColor(file.Category)"
+                                             Class="mb-2">@TypeFilesEnumExtensions.GetCategories()[file.Category]</MudChip>
+                                    <MudText Typo="Typo.body2" Class="mt-2">
+                                        Ajouté le @file.CreatedAt.ToString("dd/MM/yyyy à HH:mm")
+                                    </MudText>
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudButton Variant="Variant.Text"
+                                               Color="Color.Error"
+                                               OnClick="() => DeleteFile(file)"
+                                               StartIcon="@Icons.Material.Filled.Delete">
+                                        Supprimer
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Text"
+                                               Color="Color.Primary"
+                                               Href="@file.DownloadUrl"
+                                               Download
+                                               StartIcon="@Icons.Material.Filled.Download">
+                                        Télécharger
+                                    </MudButton>
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                }
+            </MudGrid>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info">Aucun document n'a été ajouté pour le moment.</MudAlert>
         }
     }
     else
     {
-        <div class="camera-container">
-            <video id="camera-preview" autoplay playsinline></video>
-            
-            @if (previewImage != null)
+            @if (previewImage == null)
             {
-                <div class="preview-container">
-                    <img src="@previewImage" alt="Preview" />
-                    <div class="preview-actions">
-                        <button class="btn btn-success" @onclick="SaveScan">Sauvegarder le scan</button>
-                        <button class="btn btn-secondary" @onclick="RetakePhoto">Reprendre la photo</button>
-                    </div>
-                </div>
+                <video id="camera-preview" autoplay playsinline class="w-100 rounded" style="height: 440px; object-fit: cover"></video>
+                <MudStack Row="true" Class="mt-4" Justify="Justify.Center">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Error"
+                               OnClick="StopScanning"
+                               StartIcon="@Icons.Material.Filled.Close">
+                        Annuler
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               OnClick="CapturePhoto"
+                               StartIcon="@Icons.Material.Filled.Camera">
+                        Prendre la photo
+                    </MudButton>
+                </MudStack>
             }
             else
             {
-                <button class="btn btn-primary" @onclick="CapturePhoto" @onclick:preventDefault>Prendre la photo</button>
+                <MudImage Src="@previewImage" Alt="Preview" Class="w-100 rounded" style="height: 440px; object-fit: cover"/>
+                <MudStack Row="true" Class="mt-4" Justify="Justify.Center">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Secondary"
+                               OnClick="RetakePhoto"
+                               StartIcon="@Icons.Material.Filled.Replay">
+                        Reprendre
+                    </MudButton>
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Success"
+                               OnClick="OpenCategoryDialog"
+                               StartIcon="@Icons.Material.Filled.Save">
+                        Continuer
+                    </MudButton>
+                </MudStack>
             }
-            
-            <button class="btn btn-danger" @onclick="StopScanning">Annuler</button>
-        </div>
     }
-</div>
-
-@code {
-    private bool isCaptureMode = false;
-    private string? previewImage;
-    private List<ScannedFile> scannedFiles = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadExistingFiles();
-    }
-
-    private async Task LoadExistingFiles()
-    {
-        var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads");
-        if (Directory.Exists(uploadsPath))
-        {
-            var files = Directory.GetFiles(uploadsPath, "scan-*.jpg")
-                                .Select(f => new ScannedFile
-                                {
-                                    PreviewUrl = $"/uploads/{Path.GetFileName(f)}",
-                                    DownloadUrl = $"/uploads/{Path.GetFileName(f)}"
-                                })
-                                .ToList();
-            scannedFiles = files;
-        }
-    }
-
-    private async Task StartScanning()
-    {
-        isCaptureMode = true;
-        await JSRuntime.InvokeVoidAsync("initializeCamera", DotNetObjectReference.Create(this));
-    }
-
-    private async Task CapturePhoto()
-    {
-        previewImage = await JSRuntime.InvokeAsync<string>("takePhoto");
-        Console.WriteLine("Preview image: " + previewImage);
-    }
-
-    [JSInvokable]
-    private void OnPhotoTaken(string data)
-    {
-        previewImage = data;
-    }
-
-    private async Task SaveScan()
-    {
-        if (string.IsNullOrEmpty(previewImage))
-            return;
-
-        var base64Data = previewImage.Split(',')[1];
-        var imageBytes = Convert.FromBase64String(base64Data);
-        
-        // Créer le dossier uploads s'il n'existe pas
-        var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads");
-        Directory.CreateDirectory(uploadsPath);
-        
-        // Générer un nom de fichier unique
-        var fileName = $"scan-{DateTime.Now:yyyyMMddHHmmss}.jpg";
-        var filePath = Path.Combine(uploadsPath, fileName);
-        
-        // Sauvegarder le fichier
-        await File.WriteAllBytesAsync(filePath, imageBytes);
-        
-        // Ajouter à la liste des fichiers scannés
-        scannedFiles.Add(new ScannedFile
-        {
-            PreviewUrl = $"/uploads/{fileName}",
-            DownloadUrl = $"/uploads/{fileName}"
-        });
-        
-        // Réinitialiser l'interface
-        previewImage = null;
-        isCaptureMode = false;
-        await StopCamera();
-    }
-
-    private async Task RetakePhoto()
-    {
-        previewImage = null;
-    }
-
-    private async Task StopScanning()
-    {
-        isCaptureMode = false;
-        previewImage = null;
-        await StopCamera();
-    }
-
-    private async Task StopCamera()
-    {
-        await JSRuntime.InvokeVoidAsync("stopCamera");
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await StopCamera();
-    }
-
-    private class ScannedFile
-    {
-        public string PreviewUrl { get; set; }
-        public string DownloadUrl { get; set; }
-    }
-}
+</MudContainer>
