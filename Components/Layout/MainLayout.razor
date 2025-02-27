@@ -37,7 +37,7 @@
             <MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4 ml-auto" T="bool"
                        ThumbIcon="@(_isDarkMode ? Icons.Material.Filled.NightsStay : Icons.Material.Filled.WbSunny)"/>
             <MudSpacer/>
-            <MudBadge Overlap="true" Content="@_notificationCount" Color="Color.Error">
+            <MudBadge Overlap="true" Content="@_notificationCount" Color="@(_notificationCount > 0 ? Color.Error : Color.Info)">
                 <MudToggleIconButton @bind-Toggled="_notificationsOpen"
                                      Icon="@Icons.Material.Filled.NotificationsNone"
                                      Color="Color.Default"
@@ -50,13 +50,23 @@
                 <MudList T="object" Dense="true" Class="pa-2" Style="max-width: 360px" Gutters="true" Padding="true">
                     @if (_notifications.Any())
                     {
-                        @foreach (var notification in _notifications)
+                        @foreach (var notification in _notifications.Where(n => !n.IsDone))
                         {
-                            <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@notification.Title</MudText>
-                            <MudListItem Text="@notification.Content"/>
+                            <MudListItem>
+                                <div class="d-flex align-center">
+                                    <div class="flex-grow-1">
+                                        <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@notification.Title</MudText>
+                                        <MudText Class="pa-2">@notification.Content</MudText>
+                                    </div>
+                                    <MudIconButton Icon="@Icons.Material.Filled.Check"
+                                                   Color="Color.Success"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => MarkAsDone(notification.Id))" />
+                                </div>
+                            </MudListItem>
                             @if (notification != _notifications.Last())
                             {
-                                <MudDivider/>
+                                <MudDivider />
                             }
                         }
                     }
@@ -64,8 +74,7 @@
                     {
                         <MudText Typo="Typo.body2" Class="pa-2">Aucune notification</MudText>
                     }
-                </MudList>
-            </MudPopover>
+                </MudList>            </MudPopover>
         </MudAppBar>
         <MudDrawerContainer>
             <MudDrawer @bind-Open="_drawerOpen" Elevation="2" class="vh-100">
@@ -120,8 +129,15 @@
 
     private async Task CheckNotifications()
     {
-        _notifications = await NotificationService.GetTodayNotifications();
+        _notifications = await NotificationService.GetNotifications();
         _notificationCount = _notifications.Count;
+    }
+    
+    private async Task MarkAsDone(int notificationId)
+    {
+        await NotificationService.MarkNotificationAsDone(notificationId);
+        await CheckNotifications();
+        StateHasChanged();
     }
 
 }

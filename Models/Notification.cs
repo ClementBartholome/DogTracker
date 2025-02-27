@@ -8,4 +8,5 @@ public class Notification
     public string Content { get; set; } = string.Empty;
     public string MessageId { get; set; }
     public int? TreatmentId { get; set; }
+    public bool IsDone { get; set; } = false;
 }

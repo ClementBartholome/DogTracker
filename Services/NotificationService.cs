@@ -74,11 +74,11 @@ public class NotificationService(
             included_segments = new[] { "Total Subscriptions" },
             contents = new
             {
-                en = $"Reminder : {treatment.Name} treatment is due today",
-                fr = $"N'oublie pas le traitement {treatment.Name} aujourd'hui !"
+                en = $"Reminder : {treatment.Name} treatment is due",
+                fr = $"N'oublie pas le traitement {treatment.Name} !"
             },
             url = "https://montoutou-h0bdfdhndcg4dseg.westeurope-01.azurewebsites.net/dog/1/carnet-sante",
-            send_after = treatment.ReminderDate.Value.Date.AddHours(17).AddMinutes(40)
+            send_after = treatment.ReminderDate.Value.Date.AddHours(16).AddMinutes(40)
                 .ToString("yyyy-MM-dd'T'HH:mm:ssZ")
         };
 
@@ -92,10 +92,10 @@ public class NotificationService(
             var notificationEntity = new Notification
             {
                 CreatedAt = DateTime.UtcNow,
-                PlannedFor = treatment.ReminderDate.Value.Date.AddHours(17).AddMinutes(40),
+                PlannedFor = treatment.ReminderDate.Value.Date.AddHours(16).AddMinutes(40),
                 Content = notification.contents.fr,
                 MessageId = responseData?.Id!,
-                TreatmentId = treatment.Id
+                TreatmentId = treatment.Id,
             };
 
             using var scope = serviceProvider.CreateScope();
@@ -130,7 +130,7 @@ public class NotificationService(
             throw;
         }
     }
-    public async Task<List<NotificationViewModel>> GetTodayNotifications(CancellationToken ctk = default)
+    public async Task<List<NotificationViewModel>> GetNotifications(CancellationToken ctk = default)
     {
         try
         {
@@ -141,17 +141,15 @@ public class NotificationService(
 
             
             var notifications = await dbContext.Notifications
-                .Where(n => n.PlannedFor.Date == utcDateToLocal.Date)
+                .Where(n => n.PlannedFor.Date <= utcDateToLocal.Date && n.IsDone == false)
                 .ToListAsync(ctk);
             
             var notificationsViewModel = notifications.Select(n => new NotificationViewModel
             {
                 Id = n.Id,
-                CreatedAt = n.CreatedAt,
-                PlannedFor = n.PlannedFor,
+                TreatmentId = n.TreatmentId,
                 Content = n.Content,
-                MessageId = n.MessageId,
-                TreatmentId = n.TreatmentId
+                IsDone = n.IsDone,
             }).ToList();
             logger.LogInformation("Notifications du jour récupérées avec succès");
             return notificationsViewModel;
@@ -159,6 +157,28 @@ public class NotificationService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Erreur lors de la récupération des notifications du jour");
+            throw;
+        }
+    }
+    
+    public async Task MarkNotificationAsDone(int notificationId, CancellationToken ctk = default)
+    {
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+            var notification = await dbContext.Notifications.FindAsync([notificationId], ctk);
+            if (notification != null)
+            {
+                notification.IsDone = true;
+                await dbContext.SaveChangesAsync(ctk);
+                logger.LogInformation("Notification {NotificationId} marked as done", notificationId);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error marking notification {NotificationId} as done", notificationId);
             throw;
         }
     }
