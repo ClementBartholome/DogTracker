@@ -2,7 +2,7 @@
 @using System.Globalization
 @rendermode InteractiveServer
 
-    <div class="d-flex justify-space-between align-center mb-6 pl-3 pt-3">
+<div class="d-flex justify-space-between align-center mb-6 pl-3 pt-3">
     <MudText Typo="Typo.h5">
         <MudIcon Icon="@Icons.Material.Filled.Wallet" Size="Size.Large" Class="icon-circle"/>
         Dépenses
@@ -12,7 +12,7 @@
                Class="ml-auto">
         <MudIcon Icon="@Icons.Material.Filled.Add"/>
     </MudButton>
-    </div>
+</div>
 
 @if (isLoading)
 {
@@ -29,14 +29,13 @@ else
         }
         else
         {
-            <MudChart ChartType="ChartType.Pie" 
-                      InputData="@chartData" 
-                      InputLabels="@labels" 
+            <MudChart ChartType="ChartType.Pie"
+                      InputData="@chartData"
+                      InputLabels="@labels"
                       Width="300px"
                       Height="300px"
                       ChartOptions="new ChartOptions { ShowToolTips = true, ShowLabels = true }"
-                      />
-
+            />
         }
     </MudPaper>
 }

@@ -47,26 +47,32 @@
             </MudBadge>
             <MudPopover Open="_notificationsOpen" Fixed="true" Class="mt-16" Style="z-index: 1000; max-width: 300px"
                         AnchorOrigin="@AnchorOrigin" TransformOrigin="@TransformOrigin">
-                <MudList T="object" Dense="true" Class="pa-2" Style="max-width: 360px" Gutters="true" Padding="true">
+                <div class="d-flex justify-content-between">
+                    <MudText Class="pl-3 pt-3 underline" Typo="Typo.h6">Mes notifications</MudText>
+                    <MudIconButton Icon="@Icons.Material.Filled.NavigateNext"></MudIconButton>
+                </div>
+                <MudList T="object" Dense="true" Class="pa-2 mt-2" Style="max-width: 360px" Gutters="true" Padding="true">
                     @if (_notifications.Any())
                     {
                         @foreach (var notification in _notifications.Where(n => !n.IsDone))
                         {
-                            <MudListItem>
+                            <MudListItem Class="rounded-lg bg-light bg-opacity-10">
                                 <div class="d-flex align-center">
                                     <div class="flex-grow-1">
                                         <MudText Typo="Typo.subtitle1" Class="font-weight-bold">@notification.Title</MudText>
-                                        <MudText Class="pa-2">@notification.Content</MudText>
+                                        <div class="d-flex align-center">
+                                            <MudText Class="pa-2">@notification.Content</MudText>
+                                            <MudIconButton Icon="@Icons.Material.Filled.Check"
+                                                           Color="Color.Success"
+                                                           Size="Size.Small"
+                                                           OnClick="@(() => MarkAsDone(notification.Id))"/>
+                                        </div>
                                     </div>
-                                    <MudIconButton Icon="@Icons.Material.Filled.Check"
-                                                   Color="Color.Success"
-                                                   Size="Size.Small"
-                                                   OnClick="@(() => MarkAsDone(notification.Id))" />
                                 </div>
                             </MudListItem>
                             @if (notification != _notifications.Last())
                             {
-                                <MudDivider />
+                                <MudDivider/>
                             }
                         }
                     }
@@ -74,7 +80,8 @@
                     {
                         <MudText Typo="Typo.body2" Class="pa-2">Aucune notification</MudText>
                     }
-                </MudList>            </MudPopover>
+                </MudList>
+            </MudPopover>
         </MudAppBar>
         <MudDrawerContainer>
             <MudDrawer @bind-Open="_drawerOpen" Elevation="2" class="vh-100">

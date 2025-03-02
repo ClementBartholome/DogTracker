@@ -59,3 +59,21 @@ h1:focus {
     background-color: var(--mud-palette-primary-lighten);
     padding: 5px;
 }
+
+
+.underline {
+    padding: 10px 0 0 10px;
+    position: relative;
+}
+
+.underline::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    bottom: -3px;
+    width: 126px;
+    height: 6px;
+    transform: skew(-12deg);
+    background: var(--mud-palette-primary);
+    z-index: -1;
+}
