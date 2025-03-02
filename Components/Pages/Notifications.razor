@@ -1,0 +1,63 @@
+﻿@page "/notifications"
+@rendermode InteractiveServer
+
+<MudText Typo="Typo.h5" Class="pl-3 pt-3 mb-4">
+    <MudIcon Icon="@Icons.Material.Filled.Notifications" Size="Size.Large" Class="mr-2 icon-circle"/>
+    Mes notifications
+</MudText>
+
+<MudPaper Class="p-4 mb-4" Elevation="3">
+    <MudChipSet T="NotificationFilter" @bind-SelectedValue="currentFilter" Class="mb-4">
+        <MudChip Text="Toutes" Value="@NotificationFilter.All" Default="true" Color="Color.Primary" />
+        <MudChip Text="Lues" Value="@NotificationFilter.Read" Color="Color.Success" />
+        <MudChip Text="Non lues" Value="@NotificationFilter.Unread" Color="Color.Warning" />
+    </MudChipSet>
+
+    @if (isLoading)
+    {
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
+    }
+    else if (notifications?.Any() == true)
+    {
+        <MudList T="object">
+            @foreach (var notification in filteredNotifications)
+            {
+                <MudListItem>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <MudText Typo="Typo.subtitle1">
+                            <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Class="mr-1"/>
+                            @notification.PlannedFor.ToString("dd/MM/yyyy")
+                        </MudText>
+                        <div class="d-flex gap-2">
+                            @if (!notification.IsDone)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Filled.Check"
+                                              Variant="Variant.Outlined"
+                                              Color="Color.Success"
+                                              Size="Size.Small"
+                                              OnClick="@(() => MarkNotificationAsDone(notification.Id))"/>
+                            }
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                          Variant="Variant.Outlined"
+                                          Color="Color.Primary"
+                                          Size="Size.Small"
+                                          OnClick="@(() => ConfirmDeleteNotification(notification.Id))"/>
+                        </div>
+                    </div>
+                    <MudText Typo="Typo.body1" Class="mt-2">
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-1"/>
+                        @notification.Title
+                    </MudText>
+                    <MudText Typo="Typo.body2" Class="text-gray-600">
+                        <MudIcon Icon="@Icons.Material.Filled.Message" Class="mr-1"/>
+                        @notification.Content
+                    </MudText>
+                </MudListItem>
+            }
+        </MudList>
+    }
+    else
+    {
+        <MudText Typo="Typo.body1" Class="text-gray-600 pl-4">Aucune notification</MudText>
+    }
+</MudPaper>

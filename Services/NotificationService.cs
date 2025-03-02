@@ -182,4 +182,61 @@ public class NotificationService(
             throw;
         }
     }
+    
+    public async Task<List<NotificationViewModel>> GetAllNotifications(CancellationToken ctk = default)
+    {
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+            var notifications = await dbContext.Notifications
+                .OrderByDescending(n => n.PlannedFor)
+                .ToListAsync(ctk);
+        
+            return notifications.Select(n => new NotificationViewModel
+            {
+                Id = n.Id,
+                TreatmentId = n.TreatmentId,
+                Content = n.Content,
+                IsDone = n.IsDone,
+                PlannedFor = n.PlannedFor,
+                CreatedAt = n.CreatedAt
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erreur lors de la récupération des notifications");
+            throw;
+        }
+    }
+
+    public async Task DeleteNotificationAsync(int notificationId, CancellationToken ctk = default)
+    {
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+            var notification = await dbContext.Notifications.FindAsync([notificationId], ctk);
+            if (notification != null)
+            {
+                dbContext.Notifications.Remove(notification);
+                await dbContext.SaveChangesAsync(ctk);
+            
+                // If there's an associated OneSignal notification, delete it too
+                if (!string.IsNullOrEmpty(notification.MessageId))
+                {
+                    await DeleteScheduledNotificationAsync(notification.MessageId, ctk);
+                }
+            
+                logger.LogInformation("Notification {NotificationId} deleted", notificationId);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error deleting notification {NotificationId}", notificationId);
+            throw;
+        }
+    }
 }
