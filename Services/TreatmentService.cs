@@ -87,7 +87,7 @@ public class TreatmentService(
 
                 var plannedNotification =
                     await context.Notifications.FirstOrDefaultAsync(n => n.TreatmentId == treatmentId);
-                if (plannedNotification != null && plannedNotification.PlannedFor > DateTime.Now)
+                if (plannedNotification != null && plannedNotification.PlannedFor > DateTime.Now && plannedNotification.MessageId != null)
                 {
                     await notificationService.DeleteScheduledNotificationAsync(plannedNotification?.MessageId!);
                 }

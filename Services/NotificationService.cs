@@ -67,51 +67,147 @@ public class NotificationService(
     {
         if (!treatment.ReminderDate.HasValue) return;
 
-        var notification = new
+        var reminderDateTime = treatment.ReminderDate.Value.Date.AddHours(16).AddMinutes(40);
+        var oneMonthFromNow = DateTime.UtcNow.AddMonths(1);
+        
+        var notificationEntity = new Notification
         {
-            app_id = AppId,
-            target_channel = "push",
-            included_segments = new[] { "Total Subscriptions" },
-            contents = new
-            {
-                en = $"Reminder : {treatment.Name} treatment is due",
-                fr = $"N'oublie pas le traitement {treatment.Name} !"
-            },
-            url = "https://montoutou-h0bdfdhndcg4dseg.westeurope-01.azurewebsites.net/dog/1/carnet-sante",
-            send_after = treatment.ReminderDate.Value.Date.AddHours(16).AddMinutes(40)
-                .ToString("yyyy-MM-dd'T'HH:mm:ssZ")
+            CreatedAt = DateTime.UtcNow,
+            PlannedFor = reminderDateTime,
+            Content = $"N'oublie pas le traitement {treatment.Name} !",
+            TreatmentId = treatment.Id,
         };
 
+        // OneSignal ne permet pas de planifier une notif > 1 mois dans le futur
+        if (reminderDateTime <= oneMonthFromNow)
+        {
+            try
+            {
+                var notification = new
+                {
+                    app_id = AppId,
+                    target_channel = "push",
+                    included_segments = new[] { "Total Subscriptions" },
+                    contents = new
+                    {
+                        en = $"Reminder: {treatment.Name} treatment is due",
+                        fr = notificationEntity.Content
+                    },
+                    url = "https://montoutou-h0bdfdhndcg4dseg.westeurope-01.azurewebsites.net/dog/1/carnet-sante",
+                    send_after = reminderDateTime.ToString("yyyy-MM-dd'T'HH:mm:ssZ")
+                };
+
+                var response = await _httpClient.PostAsJsonAsync(OneSignalApiUrl, notification, ctk);
+                response.EnsureSuccessStatusCode();
+                var responseContent = await response.Content.ReadAsStringAsync(ctk);
+                var responseData = JsonSerializer.Deserialize<OneSignalResponse>(responseContent);
+                
+                notificationEntity.MessageId = responseData?.Id;
+                
+                await SaveNotificationInDatabase(notificationEntity, ctk);
+
+                logger.LogInformation(
+                    "Rappel pour le traitement {TreatmentName} programmé via OneSignal pour le {ReminderDate}",
+                    treatment.Name, reminderDateTime);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex,
+                    "Erreur lors de l'envoi de la notification OneSignal pour le traitement {TreatmentName}",
+                    treatment.Name);
+                throw;
+            }
+        }
+        else
+        {
+            logger.LogInformation(
+                "Notification pour le traitement {TreatmentName} prévue pour {ReminderDate} est trop loin dans le futur. Sauvegarde en base uniquement.",
+                treatment.Name, reminderDateTime);
+        }
+        
+        await SaveNotificationInDatabase(notificationEntity, ctk);
+    }
+    
+    public async Task ProcessPendingNotifications(CancellationToken ctk = default)
+    {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync(OneSignalApiUrl, notification, ctk);
-            response.EnsureSuccessStatusCode();
-            var responseContent = await response.Content.ReadAsStringAsync(ctk);
-            var responseData = JsonSerializer.Deserialize<OneSignalResponse>(responseContent);
-
-            var notificationEntity = new Notification
-            {
-                CreatedAt = DateTime.UtcNow,
-                PlannedFor = treatment.ReminderDate.Value.Date.AddHours(16).AddMinutes(40),
-                Content = notification.contents.fr,
-                MessageId = responseData?.Id!,
-                TreatmentId = treatment.Id,
-            };
-
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            dbContext.Notifications.Add(notificationEntity);
-            await dbContext.SaveChangesAsync(ctk);
+            
+            var pendingNotifications = await dbContext.Notifications
+                .Where(n => n.MessageId == null && n.PlannedFor <= DateTime.UtcNow.AddMonths(1))
+                .AsSplitQuery()
+                .Include(n => n.Treatment)
+                .ToListAsync(ctk);
 
-            logger.LogInformation("Reminder notification scheduled for treatment {TreatmentName} on {ReminderDate}",
-                treatment.Name, treatment.ReminderDate.Value);
+            foreach (var notification in pendingNotifications)
+            {
+                await SchedulePendingNotifications(notification, ctk);
+            }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error scheduling reminder notification for treatment {TreatmentName}", treatment.Name);
+            logger.LogError(ex, "Erreur lors de la planification des notifications en attente");
             throw;
         }
     }
+    
+    private async Task SchedulePendingNotifications(Notification notification, CancellationToken ctk = default)
+    {
+        try
+        {
+            var oneSignalNotification = new
+            {
+                app_id = AppId,
+                target_channel = "push",
+                included_segments = new[] { "Total Subscriptions" },
+                contents = new
+                {
+                    en = $"Reminder: {notification.Treatment.Name} treatment is due",
+                    fr = notification.Content
+                },
+                url = "https://montoutou-h0bdfdhndcg4dseg.westeurope-01.azurewebsites.net/dog/1/carnet-sante",
+                send_after = notification.PlannedFor.ToString("yyyy-MM-dd'T'HH:mm:ssZ")
+            };
+
+            var response = await _httpClient.PostAsJsonAsync(OneSignalApiUrl, oneSignalNotification, ctk);
+            response.EnsureSuccessStatusCode();
+            var responseContent = await response.Content.ReadAsStringAsync(ctk);
+            
+            var responseData = JsonSerializer.Deserialize<OneSignalResponse>(responseContent);
+            
+            notification.MessageId = responseData?.Id;
+            
+            await SaveNotificationInDatabase(notification, ctk);
+            
+            logger.LogInformation("Notification {NotificationId} programmée via OneSignal avec succès", notification.Id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erreur lors de la planification de la notification {NotificationId}", notification.Id);
+            throw;
+        }
+    }
+    
+    private async Task SaveNotificationInDatabase(Notification notification, CancellationToken ctk = default)
+    {
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            
+            dbContext.Notifications.Add(notification);
+            await dbContext.SaveChangesAsync(ctk);
+            logger.LogInformation("Notification {NotificationId} saved in database", notification.Id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error saving notification in database");
+            throw;
+        }
+    }
+
 
     public async Task DeleteScheduledNotificationAsync(string messageId, CancellationToken ctk = default)
     {
@@ -130,20 +226,21 @@ public class NotificationService(
             throw;
         }
     }
+
     public async Task<List<NotificationViewModel>> GetNotifications(CancellationToken ctk = default)
     {
         try
         {
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            
+
             var utcDateToLocal = DateTime.UtcNow.AddHours(1);
 
-            
+
             var notifications = await dbContext.Notifications
                 .Where(n => n.PlannedFor.Date <= utcDateToLocal.Date && n.IsDone == false)
                 .ToListAsync(ctk);
-            
+
             var notificationsViewModel = notifications.Select(n => new NotificationViewModel
             {
                 Id = n.Id,
@@ -160,14 +257,14 @@ public class NotificationService(
             throw;
         }
     }
-    
+
     public async Task MarkNotificationAsDone(int notificationId, CancellationToken ctk = default)
     {
         try
         {
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        
+
             var notification = await dbContext.Notifications.FindAsync([notificationId], ctk);
             if (notification != null)
             {
@@ -182,18 +279,18 @@ public class NotificationService(
             throw;
         }
     }
-    
+
     public async Task<List<NotificationViewModel>> GetAllNotifications(CancellationToken ctk = default)
     {
         try
         {
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        
+
             var notifications = await dbContext.Notifications
                 .OrderByDescending(n => n.PlannedFor)
                 .ToListAsync(ctk);
-        
+
             return notifications.Select(n => new NotificationViewModel
             {
                 Id = n.Id,
@@ -217,19 +314,19 @@ public class NotificationService(
         {
             using var scope = serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        
+
             var notification = await dbContext.Notifications.FindAsync([notificationId], ctk);
             if (notification != null)
             {
                 dbContext.Notifications.Remove(notification);
                 await dbContext.SaveChangesAsync(ctk);
-            
-                // If there's an associated OneSignal notification, delete it too
+
+                // S'il y a une notif OneSignal associée, on envoie la requête pour la supprimer aussi
                 if (!string.IsNullOrEmpty(notification.MessageId))
                 {
                     await DeleteScheduledNotificationAsync(notification.MessageId, ctk);
                 }
-            
+
                 logger.LogInformation("Notification {NotificationId} deleted", notificationId);
             }
         }

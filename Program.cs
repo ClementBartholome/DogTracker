@@ -1,6 +1,7 @@
 using DogTracker.Components;
 using DogTracker.Data;
 using DogTracker.Interfaces;
+using DogTracker.Jobs;
 using DogTracker.Models;
 using DogTracker.Services;
 using Microsoft.EntityFrameworkCore;
@@ -65,12 +66,24 @@ builder.Services.AddScoped<ITreatmentService, TreatmentService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<IWeightService, WeightService>();
 
-// builder.Services.AddQuartz();
-//
-// builder.Services.AddQuartzHostedService(opts => 
-// {
-//     opts.WaitForJobsToComplete = true;
-// });
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("ReminderJob", "NotificationGroup");
+    
+    q.AddJob<ReminderJob>(opts => opts.WithIdentity(jobKey));
+    
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("ReminderTrigger", "NotificationGroup")
+        .WithCronSchedule("0 55 11 * * ?"));  // Seconds, Minutes, Hours, Day of month, Month, Day of week
+});
+
+builder.Services.AddQuartzHostedService(opts => 
+{
+    opts.WaitForJobsToComplete = true;
+});
+
+
             
 builder.Services.AddHttpClient("OneSignalClient", client =>
 {

@@ -9,7 +9,8 @@ public class ReminderJob(ILogger<ReminderJob> logger, NotificationService notifi
     {
         try 
         {
-            await notificationService.SendNotifications(context.CancellationToken);
+            await notificationService.ProcessPendingNotifications(context.CancellationToken);
+            // await notificationService.SendNotifications(context.CancellationToken);
         }
         catch (Exception ex)
         {
