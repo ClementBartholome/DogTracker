@@ -62,7 +62,17 @@
         ReminderDate = null,
     };
 
-    private void Submit() => MudDialog.Close(DialogResult.Ok(_treatment));
+    private void Submit()
+    {
+        // Ensure the ReminderDate maintains the correct date by setting it to noon on the selected date
+        // This prevents timezone issues when converting to UTC
+        if (_treatment.ReminderDate.HasValue)
+        {
+            _treatment.ReminderDate = _treatment.ReminderDate.Value.Date.AddHours(12);
+        }
 
+        MudDialog.Close(DialogResult.Ok(_treatment));
+    }
+    
     private void Cancel() => MudDialog.Cancel();
 }
