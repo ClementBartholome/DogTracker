@@ -3,6 +3,7 @@
 @inherits LayoutComponentBase
 @rendermode InteractiveAuto
 @inject NotificationService NotificationService;
+@inject IJSRuntime JSRuntime
 
 
 @* <div class="sidebar"> *@
@@ -35,7 +36,8 @@
             </a>
             <MudSpacer/>
             <MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4 ml-auto" T="bool"
-                       ThumbIcon="@(_isDarkMode ? Icons.Material.Filled.NightsStay : Icons.Material.Filled.WbSunny)"/>
+                       ThumbIcon="@(_isDarkMode ? Icons.Material.Filled.NightsStay : Icons.Material.Filled.WbSunny)"
+                       @onclick="SaveThemePreference"/>
             <MudSpacer/>
             <MudBadge Overlap="true" Content="@_notificationCount"
                       Color="@(_notificationCount > 0 ? Color.Error : Color.Info)">
@@ -121,6 +123,7 @@
     private bool _notificationsOpen;
     private Origin TransformOrigin { get; set; } = Origin.TopRight;
     private Origin AnchorOrigin { get; set; } = Origin.TopRight;
+    private const string ThemePreferenceKey = "darkModePreference";
 
     void DrawerToggle()
     {
@@ -131,10 +134,36 @@
     {
         if (firstRender)
         {
-            _isDarkMode = await _mudThemeProvider.GetSystemPreference();
+            // Try to load from localStorage first, fall back to system preference if not found
+            var storedPreference = await GetSavedThemePreference();
+            _isDarkMode = storedPreference ?? true;
+            
             await CheckNotifications();
             StateHasChanged();
         }
+    }
+
+    private async Task<bool?> GetSavedThemePreference()
+    {
+        try
+        {
+            var storedPreference = await JSRuntime.InvokeAsync<string>("localStorage.getItem", ThemePreferenceKey);
+            return storedPreference?.ToLower() switch
+            {
+                "true" => true,
+                "false" => false,
+                _ => null
+            };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task SaveThemePreference()
+    {
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", ThemePreferenceKey, !_isDarkMode);
     }
 
     private async Task CheckNotifications()
@@ -149,5 +178,4 @@
         await CheckNotifications();
         StateHasChanged();
     }
-
 }
