@@ -140,6 +140,7 @@
             
             await CheckNotifications();
             StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("registerServiceWorker");
         }
     }
 
