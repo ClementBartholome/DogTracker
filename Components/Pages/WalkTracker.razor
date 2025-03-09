@@ -82,7 +82,11 @@
                                 <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" class="mr-1" />
                                 <span>@walk.Distance.ToString("F2") km</span>
                                 <MudIcon Icon="@Icons.Material.Filled.Timer" class="ml-2 mr-1" />
-                                <span>@((walk.AdjustedEndTime - walk.AdjustedStartTime).TotalMinutes.ToString("F0")) min</span>
+                                <span>@{
+                                        var lastWalkDuration = (walk.AdjustedEndTime - walk.AdjustedStartTime).TotalMinutes;
+                                        var formattedDuration = lastWalkDuration < 60 ? $"{lastWalkDuration:F0} min" : $"{lastWalkDuration / 60:F0}h{lastWalkDuration % 60:00}min";
+                                    }
+                                    @formattedDuration</span>
                             </MudText>
                         </MudListItem>
                     }
