@@ -100,12 +100,12 @@
 
         <MudMainContent>
             <MudContainer MaxWidth="MaxWidth.Large"
-                          Style="margin-top: 32px !important; padding-bottom: 32px !important;">
+                          Style="margin-top: 32px !important; padding-bottom: 90px !important;">
                 @Body
             </MudContainer>
         </MudMainContent>
     </MudLayout>
-    <RadialMenu/>
+    <NavigationBar/>
 </main>
 
 <div id="blazor-error-ui">
@@ -140,7 +140,7 @@
             
             await CheckNotifications();
             StateHasChanged();
-            await JSRuntime.InvokeVoidAsync("registerServiceWorker");
+            // await JSRuntime.InvokeVoidAsync("registerServiceWorker");
         }
     }
 

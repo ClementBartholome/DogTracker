@@ -1,0 +1,101 @@
+﻿@using MudBlazor
+@inject NavigationManager NavigationManager
+
+<MudPaper Elevation="2" Class="navigation-bar" Square="true">
+    <MudNavMenu Dense="true" Class="px-2">
+        @foreach (var item in _menuItems)
+        {
+            <MudNavLink Href="@item.Route"
+                        Icon="@item.Icon"
+                        Match="@(item.Route == "/" ? NavLinkMatch.All : NavLinkMatch.Prefix)"
+                        Class="flex-grow-1 py-2 justify-center">
+                <MudText Typo="Typo.caption" Class="mt-1">@item.Label</MudText>
+            </MudNavLink>
+        }
+    </MudNavMenu>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public int DogId { get; set; } = 1;
+
+    private List<(string Icon, string Label, string Route)> _menuItems => new()
+    {
+        (Icons.Material.Filled.Home, "Accueil", "/"),
+        (Icons.Material.Filled.Pets, "Promenades", $"dog/{DogId}/walk"),
+        (Icons.Material.Filled.Wallet, "Dépenses", $"dog/{DogId}/depenses"),
+        (Icons.Material.Filled.MedicalServices, "Santé", $"dog/{DogId}/carnet-sante")
+    };
+}
+
+<style>
+    .navigation-bar {
+        display: flex;
+        flex-direction: row;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        
+        .mud-navmenu {
+            display: flex;
+            flex-direction: row;
+            margin: auto;
+        }
+    }
+    
+    .mud-nav-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px;
+        
+        .mud-nav-link-text {
+            width: auto;
+            margin-inline-start: unset;
+            margin-left: unset;
+            text-align: center;
+        }
+    }
+
+    .mud-nav-link.active {
+        background-color: transparent !important;
+    }
+
+    .mud-nav-link.active .mud-nav-link-icon {
+        color: var(--mud-palette-primary) !important;
+    }
+
+    .mud-nav-link.active .mud-typography {
+        color: var(--mud-palette-primary) !important;
+    }
+
+    @@media (min-width: 1024px) {
+        .navigation-bar {
+            position: fixed;
+            top: 80px;
+            bottom: 0;
+            left: 0;
+            right: auto;
+            width: 150px;
+            border-radius: 0;
+            flex-direction: column;
+            
+            .mud-navmenu {
+                flex-direction: column;
+                margin: 0;
+            }
+        }
+
+        .nav-menu {
+            flex-direction: column;
+            padding: 1rem 0;
+        }
+
+        .nav-link {
+            margin: 0.5rem 0;
+            padding: 1rem 0;
+        }
+    }
+</style>
