@@ -149,3 +149,18 @@
         </MudText>
     }
 </MudPaper>
+
+<MudPaper Class="p-4 mb-4" Elevation="3">
+    <div class="d-flex justify-space-between align-center mb-4">
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.InsertDriveFile" Size="Size.Large" Class="mr-2 icon-circle"/>
+            Documents
+        </MudText>
+        <MudButton
+            Href="@($"dog/{dogId}/documents")"
+            Color="Color.Primary"
+            Class="ml-auto">
+            <MudIcon Icon="@Icons.Material.Filled.NavigateNext"/>
+        </MudButton>
+    </div>
+</MudPaper>
