@@ -1,0 +1,38 @@
+﻿@using DogTracker.Models
+@namespace DogTracker.Components.Dialog
+
+<MudDialog>
+    <DialogContent>
+            <MudImage Src="@File.PreviewUrl" Alt="Document preview" Fluid="true" Class="w-100 h-100" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Href="@File.DownloadUrl" Download Color="Color.Primary" StartIcon="@Icons.Material.Filled.Download">
+            Télécharger
+        </MudButton>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">Fermer</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public GedFile File { get; set; } = null!;
+
+    void Cancel() => MudDialog.Cancel();
+}
+
+<style>
+    .mud-dialog {
+        height: 80vh;
+        overflow: auto;
+
+        .mud-dialog-content {
+            padding: 0 12px;
+        }
+    }
+    
+    .file-preview-container {
+        height: 100%;
+    }
+    
+    
+</style>

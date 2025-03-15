@@ -1,5 +1,6 @@
 ﻿@page "/dog/{dogId:int}/documents"
 @using DogTracker.Enums
+@using Microsoft.AspNetCore.Components.Web
 @rendermode InteractiveServer
 
 <div class="d-flex justify-space-between align-center mb-6 pl-3 pt-3">
@@ -81,7 +82,13 @@
                                         Ajouté le @file.CreatedAt.ToString("dd/MM/yyyy à HH:mm")
                                     </MudText>
                                 </MudCardContent>
-                                <MudCardActions>
+                                <MudCardActions class="flex-wrap">
+                                    <MudButton Variant="Variant.Text"
+                                               Color="Color.Secondary"
+                                               OnClick="() => OpenPreviewDialog(file)"
+                                               StartIcon="@Icons.Material.Filled.Visibility">
+                                        Voir
+                                    </MudButton>
                                     <MudButton Variant="Variant.Text"
                                                Color="Color.Error"
                                                OnClick="() => DeleteFile(file)"
@@ -97,7 +104,7 @@
                                     </MudButton>
                                 </MudCardActions>
                             </MudCard>
-                        </MudItem>
+                        </MudItem>                        
                     }
                 }
             </MudGrid>
@@ -147,3 +154,15 @@
             }
     }
 </MudContainer>
+
+<style>
+    .document-card {
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .document-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--mud-elevation-5);
+    }
+</style>

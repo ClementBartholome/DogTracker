@@ -90,6 +90,23 @@ namespace DogTracker.Components.Pages
                 await SaveScan();
             }
         }
+        
+        private void OpenPreviewDialog(GedFile file)
+        {
+            var parameters = new DialogParameters
+            {
+                { "File", file }
+            };
+    
+            var options = new DialogOptions 
+            { 
+                CloseButton = true,
+                FullScreen = false,
+                MaxWidth = MaxWidth.Large
+            };
+    
+            DialogService.ShowAsync<FilePreviewDialog>("Aperçu du document", parameters, options);
+        }
 
         private async Task SaveScan()
         {
