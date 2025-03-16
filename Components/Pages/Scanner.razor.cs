@@ -20,6 +20,9 @@ namespace DogTracker.Components.Pages
         private bool _showCategoryDialog;
         private TypeFilesEnum _selectedCategory;
         private TypeFilesEnum _filterCategory ;
+        private bool hasFlash = false;
+        private bool flashEnabled = false;
+        
         IList<IBrowserFile> _files = new List<IBrowserFile>();
         [Inject] private IDialogService DialogService { get; set; } = null!;
         [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
@@ -229,6 +232,19 @@ namespace DogTracker.Components.Pages
                 TypeFilesEnum.Divers => Color.Warning,
                 _ => Color.Default
             };
+        }
+
+        [JSInvokable]
+        public void SetFlashAvailability(bool available)
+        {
+            hasFlash = available;
+            StateHasChanged();
+        }
+
+        private async Task ToggleFlash()
+        {
+            flashEnabled = !flashEnabled;
+            await JsRuntime.InvokeVoidAsync("toggleFlash", flashEnabled);
         }
     }
 }

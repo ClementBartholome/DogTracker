@@ -32,7 +32,6 @@ self.addEventListener('message', event => {
             distance: event.data.distance || 0
         };
 
-        // Set up periodic updates
         setInterval(() => {
             if (walkData.isTracking) {
                 walkData.duration = Math.floor((Date.now() - walkData.startTime) / 1000);
