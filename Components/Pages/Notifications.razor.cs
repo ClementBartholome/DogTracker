@@ -9,7 +9,8 @@ namespace DogTracker.Components.Pages
     {
         All,
         Read,
-        Unread
+        Unread,
+        Upcoming
     }
 
     public partial class Notifications : ComponentBase
@@ -32,6 +33,7 @@ namespace DogTracker.Components.Pages
         {
             NotificationFilter.Read => notifications.Where(n => n.IsDone),
             NotificationFilter.Unread => notifications.Where(n => !n.IsDone),
+            NotificationFilter.Upcoming => notifications.Where(n => n.PlannedFor > DateTime.Now),
             _ => notifications
         };
         

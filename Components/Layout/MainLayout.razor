@@ -4,7 +4,8 @@
 @rendermode InteractiveAuto
 @inject NotificationService NotificationService;
 @inject IJSRuntime JSRuntime
-
+@inject NavigationManager NavigationManager
+@implements IDisposable
 
 @* <div class="sidebar"> *@
 @*     <NavMenu/> *@
@@ -128,6 +129,22 @@
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+    
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += HandleLocationChanged;
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _notificationsOpen = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

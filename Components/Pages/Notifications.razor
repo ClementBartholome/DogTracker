@@ -9,6 +9,7 @@
 <MudPaper Class="p-4 mb-4" Elevation="3">
     <MudChipSet T="NotificationFilter" @bind-SelectedValue="currentFilter" Class="mb-4">
         <MudChip Text="Toutes" Value="@NotificationFilter.All" Default="true" Color="Color.Primary" />
+        <MudChip Text="À venir" Value="@NotificationFilter.Upcoming" Color="Color.Info" />
         <MudChip Text="Lues" Value="@NotificationFilter.Read" Color="Color.Success" />
         <MudChip Text="Non lues" Value="@NotificationFilter.Unread" Color="Color.Warning" />
     </MudChipSet>
