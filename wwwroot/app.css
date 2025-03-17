@@ -82,8 +82,9 @@ h1:focus {
 
 .mud-appbar {
     border-radius: 30px;
-    margin-top: 5px;
+    margin: 5px auto !important;
     position: absolute !important;
+    width: 95% !important;
 }
 
 .mud-paper {
@@ -94,4 +95,8 @@ h1:focus {
     .mud-paper {
         border-radius: var(--mud-default-borderradius) !important;
     }
+}
+
+.mud-card-media {
+    background-position: top !important;
 }
