@@ -19,6 +19,7 @@ body {
     padding: 0;
     margin: 0;
 }
+
 html, body, #map {
     height: 100%;
     width: 100vw;
@@ -46,9 +47,9 @@ h1:focus {
     color: white;
 }
 
-    .blazor-error-boundary::after {
-        content: "An error has occurred."
-    }
+.blazor-error-boundary::after {
+    content: "An error has occurred."
+}
 
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
@@ -76,4 +77,21 @@ h1:focus {
     transform: skew(-12deg);
     background: var(--mud-palette-primary);
     z-index: -1;
+}
+
+
+.mud-appbar {
+    border-radius: 30px;
+    margin-top: 5px;
+    position: absolute !important;
+}
+
+.mud-paper {
+    border-radius: 30px !important;
+}
+
+.mud-drawer-content {
+    .mud-paper {
+        border-radius: var(--mud-default-borderradius) !important;
+    }
 }
