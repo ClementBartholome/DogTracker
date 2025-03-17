@@ -3,7 +3,7 @@
 
 <MudDialog>
     <DialogContent>
-            <MudImage Src="@File.PreviewUrl" Alt="Document preview" Fluid="true" Class="w-100 h-100" />
+            <MudImage Src="@File.PreviewUrl" Alt="Document preview" Fluid="true" Class="w-100 h-100" Style="object-fit: cover !important;" />
     </DialogContent>
     <DialogActions>
         <MudButton Href="@File.DownloadUrl" Download Color="Color.Primary" StartIcon="@Icons.Material.Filled.Download">

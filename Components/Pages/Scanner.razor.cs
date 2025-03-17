@@ -35,25 +35,55 @@ namespace DogTracker.Components.Pages
             await LoadExistingFiles();
         }
 
-        private async Task LoadExistingFiles()
+        private Task LoadExistingFiles()
         {
             var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", DogId.ToString());
             if (Directory.Exists(uploadsPath))
             {
-                var files = Directory.GetFiles(uploadsPath, "scan-*.jpg")
+                var files = new List<GedFile>();
+        
+                files.AddRange(Directory.GetFiles(uploadsPath, "scan-*.jpg")
                     .Select(f => new GedFile
                     {
                         PreviewUrl = $"/uploads/{DogId}/{Path.GetFileName(f)}",
                         DownloadUrl = $"/uploads/{DogId}/{Path.GetFileName(f)}",
                         Category = Enum.Parse<TypeFilesEnum>(GetCategoryFromFileName(Path.GetFileName(f))),
                         CreatedAt = File.GetCreationTime(f)
-                    })
-                    .OrderByDescending(f => f.CreatedAt)
-                    .ToList();
-                scannedFiles = files;
+                    }));
+        
+                files.AddRange(Directory.GetFiles(uploadsPath, "upload-*")
+                    .Select(f => {
+                        var fileName = Path.GetFileName(f);
+                        var fileExt = Path.GetExtension(f).ToLowerInvariant();
+                        var isImage = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" }.Contains(fileExt);
+                
+                        return new GedFile
+                        {
+                            PreviewUrl = isImage 
+                                ? $"/uploads/{DogId}/{fileName}" 
+                                : GetIconForFileType(fileExt),
+                            DownloadUrl = $"/uploads/{DogId}/{fileName}",
+                            Category = Enum.Parse<TypeFilesEnum>(GetCategoryFromFileName(fileName)),
+                            CreatedAt = File.GetCreationTime(f)
+                        };
+                    }));
+        
+                scannedFiles = files.OrderByDescending(f => f.CreatedAt).ToList();
             }
+
+            return Task.CompletedTask;
         }
 
+        private string GetIconForFileType(string extension)
+        {
+            return extension switch
+            {
+                ".pdf" => "/images/icons/pdf-preview.png",
+                ".doc" or ".docx" => "/images/icons/doc-preview.png",
+                ".xls" or ".xlsx" => "/images/icons/xls-preview.png",
+                _ => "/images/icons/file-preview.png"
+            };
+        }
         private string GetCategoryFromFileName(string fileName)
         {
             var parts = fileName.Split('-');
@@ -145,11 +175,132 @@ namespace DogTracker.Components.Pages
             await StopCamera();
         }
 
-        private void UploadFiles(IBrowserFile file)
+        private async Task UploadFiles(IBrowserFile file)
         {
-            _files.Add(file);
-            _selectedCategory = TypeFilesEnum.Divers;
-            _showCategoryDialog = true;
+            try
+            {
+                _files.Clear(); // Clear previous files
+                _files.Add(file);
+        
+                // Generate a preview for the selected file
+                await GenerateFilePreview(file);
+        
+                // Show the category dialog
+                await OpenCategoryDialogForUpload();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Erreur lors du téléchargement: {ex.Message}", Severity.Error);
+            }
+        }
+        
+        private async Task GenerateFilePreview(IBrowserFile file)
+        {
+            // For images, create a preview
+            if (file.ContentType.StartsWith("image/"))
+            {
+                var imageFile = await file.RequestImageFileAsync(file.ContentType, 800, 600);
+                using var stream = imageFile.OpenReadStream(maxAllowedSize: 10485760); // 10MB max
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                var imageBytes = ms.ToArray();
+                previewImage = $"data:{file.ContentType};base64,{Convert.ToBase64String(imageBytes)}";
+            }
+            else
+            {
+                // For non-image files, use a generic preview based on file extension
+                var extension = Path.GetExtension(file.Name).ToLowerInvariant();
+                string iconPath = extension switch
+                {
+                    ".pdf" => "/images/icons/pdf-icon.png",
+                    ".doc" or ".docx" => "/images/icons/doc-icon.png",
+                    ".xls" or ".xlsx" => "/images/icons/xls-icon.png",
+                    _ => "/images/icons/file-icon.png"
+                };
+        
+                // You might need to create these icon images or use Material Icons
+                previewImage = iconPath;
+            }
+    
+            isCaptureMode = true; // Switch to preview mode
+        }
+        
+        private async Task OpenCategoryDialogForUpload()
+        {
+            var parameters = new DialogParameters
+            {
+                { "SaveScanCallback", EventCallback.Factory.Create(this, SaveUploadedFile) }
+            };
+    
+            var dialog = DialogService.Show<FileCategoryDialog>("Sélectionner la catégorie du document", parameters);
+            var result = await dialog.Result;
+    
+            if (result is { Canceled: false, Data: TypeFilesEnum typeFile })
+            {
+                _selectedCategory = typeFile;
+                await SaveUploadedFile();
+            }
+            else
+            {
+                // User canceled, reset state
+                previewImage = null;
+                isCaptureMode = false;
+                _files.Clear();
+            }
+        }
+        
+        private async Task SaveUploadedFile()
+        {
+            if (_files.Count == 0 || _selectedCategory == null)
+                return;
+    
+            var file = _files[0];
+            var extension = Path.GetExtension(file.Name);
+            if (string.IsNullOrEmpty(extension))
+                extension = ".bin";
+    
+            var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", DogId.ToString());
+            Directory.CreateDirectory(uploadsPath);
+    
+            var fileName = $"upload-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}{extension}";
+            var filePath = Path.Combine(uploadsPath, fileName);
+    
+            using (var stream = file.OpenReadStream(maxAllowedSize: 10485760)) // 10MB
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await stream.CopyToAsync(fileStream);
+            }
+    
+            // Create thumbnail for non-image files
+            string previewUrl = $"/uploads/{DogId}/{fileName}";
+            if (!file.ContentType.StartsWith("image/"))
+            {
+                // For non-image files, use a generic preview based on file type
+                previewUrl = file.ContentType switch
+                {
+                    "application/pdf" => "/images/icons/pdf-preview.png",
+                    "application/msword" or "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+                        => "/images/icons/doc-preview.png",
+                    _ => "/images/icons/file-preview.png"
+                };
+            }
+    
+            var newFile = new GedFile
+            {
+                PreviewUrl = previewUrl,
+                DownloadUrl = $"/uploads/{DogId}/{fileName}",
+                Category = _selectedCategory,
+                CreatedAt = DateTime.Now
+            };
+    
+            scannedFiles.Insert(0, newFile);
+    
+            Snackbar.Add("Document téléchargé avec succès", Severity.Success);
+    
+            previewImage = null;
+            isCaptureMode = false;
+            _files.Clear();
+            CloseDrawer();
         }
 
         private async Task RetakePhoto()
