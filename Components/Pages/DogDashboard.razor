@@ -6,14 +6,15 @@
 <MudText Typo="Typo.h5" Class="pl-3 pt-3 underline">Tableau de bord</MudText>
 <MudGrid Class="mt-2">
     <MudItem xs="12" md="3" Class="align-self-center pt-0">
-        <MudImage Src="../../images/mango_icon.png" Class="rounded-circle d-block mx-auto" Style="height: 120px; width: 120px; padding:5px;" Elevation="25"></MudImage>
+        <MudImage Src="../../images/mango_icon.png" Class="rounded-circle d-block mx-auto"
+                  Style="height: 120px; width: 120px; padding:5px;" Elevation="25"></MudImage>
     </MudItem>
     <MudItem xs="12" md="3">
         <MudCard Class="p-3">
-            <MudText Typo="Typo.subtitle1">Récap des promenades aujourd'hui</MudText>
+            <MudText Typo="Typo.subtitle1">Récap des promenades</MudText>
             @if (isLoading)
             {
-                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="130px"/>
             }
             else if (!_recentWalks.Any())
             {
@@ -21,20 +22,46 @@
             }
             else
             {
-                <div class="d-flex justify-content-around mt-2">
-                    <div class="mt-2 d-flex flex-column align-items-center">
-                        <MudText Typo="Typo.body1" Class="fw-bold">@(_totalDurationToday ?? "0 min")</MudText>
-                        <MudText Typo="Typo.caption">Durée</MudText>
+                <MudChipSet T="string" @bind-SelectedValue="_selectedTimePeriod" Class="mt-2 mb-3 d-flex justify-center">
+                    <MudChip Text="Aujourd'hui" Value="@("today")" Default="true" Color="Color.Primary">Aujourd'hui</MudChip>
+                    <MudChip Text="Semaine" Value="@("week")" Color="Color.Primary">Semaine</MudChip>
+                </MudChipSet>
+
+                @if (_selectedTimePeriod == "today")
+                {
+                    <div class="d-flex justify-content-around">
+                        <div class="mt-2 d-flex flex-column align-items-center">
+                            <MudText Typo="Typo.body1" Class="fw-bold">@(_totalDurationToday ?? "0 min")</MudText>
+                            <MudText Typo="Typo.caption">Durée</MudText>
+                        </div>
+                        <div class="mt-2 d-flex flex-column align-items-center">
+                            <MudText Typo="Typo.body1" Class="fw-bold">@_totalDistanceToday.ToString("F2") km</MudText>
+                            <MudText Typo="Typo.caption">Distance</MudText>
+                        </div>
+                        <div class="mt-2 d-flex flex-column align-items-center">
+                            <MudText Typo="Typo.body1" Class="fw-bold">@_totalWalksToday</MudText>
+                            <MudText Typo="Typo.caption">@(_totalWalksToday > 1 ? "Promenades" : "Promenade")</MudText>
+                        </div>
                     </div>
-                    <div class="mt-2 d-flex flex-column align-items-center">
-                        <MudText Typo="Typo.body1" Class="fw-bold">@_totalDistanceToday.ToString("F2") km</MudText>
-                        <MudText Typo="Typo.caption">Distance</MudText>
+                }
+                else
+                {
+                    <div class="d-flex justify-content-around">
+                        <div class="mt-2 d-flex flex-column align-items-center">
+                            <MudText Typo="Typo.body1" Class="fw-bold">@(_weeklyAverageDuration ?? "0 min")</MudText>
+                            <MudText Typo="Typo.caption">Moy./jour</MudText>
+                        </div>
+                        <div class="mt-2 d-flex flex-column align-items-center">
+                            <MudText Typo="Typo.body1" Class="fw-bold">@_weeklyAverageDistance.ToString("F2") km
+                            </MudText>
+                            <MudText Typo="Typo.caption">Moy. dist.</MudText>
+                        </div>
+                        <div class="mt-2 d-flex flex-column align-items-center">
+                            <MudText Typo="Typo.body1" Class="fw-bold">@_totalWalksWeek</MudText>
+                            <MudText Typo="Typo.caption">Promenades</MudText>
+                        </div>
                     </div>
-                    <div class="mt-2 d-flex flex-column align-items-center">
-                        <MudText Typo="Typo.body1" Class="fw-bold">@_totalWalksToday</MudText>
-                        <MudText Typo="Typo.caption">@(_totalWalksToday > 1 ? "Promenades" : "Promenade")</MudText>
-                    </div>
-                </div>
+                }
             }
         </MudCard>
     </MudItem>

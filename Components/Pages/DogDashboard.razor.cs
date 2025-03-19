@@ -21,6 +21,10 @@ namespace DogTracker.Components.Pages
         private int _totalWalksToday;
         private bool isLoading;
         private ExpenseSummaryViewModel expenseSummary = new();
+        private string? _weeklyAverageDuration;
+        private double _weeklyAverageDistance;
+        private int _totalWalksWeek;
+        private string _selectedTimePeriod = "today";
 
 
         protected override async Task OnInitializedAsync()
@@ -33,8 +37,44 @@ namespace DogTracker.Components.Pages
             _currentWeight = await WeightService.GetLastWeightRecord(DogId);
             _expenses = await ExpenseService.GetExpensesAsync(DogId, DateTime.Now.Year, DateTime.Now.Month);
             CalculateTodayStats();
+            CalculateWeeklyStats(); 
             PrepareExpenseSummary();
             isLoading = false;
+        }
+        
+        private void CalculateWeeklyStats()
+        {
+            // Get start of week (Monday)
+            DateTime startOfWeek = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + 1);
+            if ((int)DateTime.Today.DayOfWeek == 0) // Sunday is 0
+                startOfWeek = startOfWeek.AddDays(-7);
+    
+            var weekWalks = _recentWalks
+                .Where(w => w.AdjustedStartTime.Date >= startOfWeek && 
+                            w.AdjustedStartTime.Date <= DateTime.Today)
+                .ToList();
+    
+            _totalWalksWeek = weekWalks.Count;
+    
+            if (_totalWalksWeek == 0)
+            {
+                _weeklyAverageDuration = "0 min";
+                _weeklyAverageDistance = 0;
+                return;
+            }
+    
+            // Calculate days elapsed in current week
+            int daysElapsed = Math.Max(1, (int)(DateTime.Today - startOfWeek).TotalDays + 1);
+    
+            // Calculate average minutes per day
+            var totalMinutes = weekWalks.Sum(w => (w.AdjustedEndTime - w.AdjustedStartTime).TotalMinutes);
+            var avgMinutesPerDay = totalMinutes / daysElapsed;
+    
+            _weeklyAverageDuration = avgMinutesPerDay < 60 
+                ? $"{avgMinutesPerDay:F0} min" 
+                : $"{(int)avgMinutesPerDay / 60}h{avgMinutesPerDay % 60:00}";
+    
+            _weeklyAverageDistance = weekWalks.Sum(w => w.Distance) / daysElapsed;
         }
         
         private void PrepareExpenseSummary()
