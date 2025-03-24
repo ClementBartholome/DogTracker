@@ -50,7 +50,8 @@ namespace DogTracker.Components.Pages
                         PreviewUrl = $"/uploads/{DogId}/{Path.GetFileName(f)}",
                         DownloadUrl = $"/uploads/{DogId}/{Path.GetFileName(f)}",
                         Category = Enum.Parse<TypeFilesEnum>(GetCategoryFromFileName(Path.GetFileName(f))),
-                        CreatedAt = File.GetCreationTime(f)
+                        CreatedAt = File.GetCreationTime(f),
+                        Name = GetNameFromFileName(Path.GetFileName(f))
                     }));
         
                 files.AddRange(Directory.GetFiles(uploadsPath, "upload-*")
@@ -66,7 +67,8 @@ namespace DogTracker.Components.Pages
                                 : GetIconForFileType(fileExt),
                             DownloadUrl = $"/uploads/{DogId}/{fileName}",
                             Category = Enum.Parse<TypeFilesEnum>(GetCategoryFromFileName(fileName)),
-                            CreatedAt = File.GetCreationTime(f)
+                            CreatedAt = File.GetCreationTime(f),
+                            Name = GetNameFromFileName(fileName)
                         };
                     }));
         
@@ -89,7 +91,13 @@ namespace DogTracker.Components.Pages
         private string GetCategoryFromFileName(string fileName)
         {
             var parts = fileName.Split('-');
-            return parts.Length >= 3 ? parts[1] : "misc";
+            return parts.Length >= 4 ? parts[2] : "Divers";
+        }
+        
+        private string GetNameFromFileName(string fileName)
+        {
+            var parts = fileName.Split('-');
+            return parts.Length >= 4 ? parts[1] : fileName;
         }
 
         private async Task StartScanning()
@@ -156,7 +164,7 @@ namespace DogTracker.Components.Pages
             var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", DogId.ToString());
             Directory.CreateDirectory(uploadsPath);
 
-            var fileName = $"scan-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}.jpg";
+            var fileName = $"scan-{_selectedDocumentName}-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}.jpg";
             var filePath = Path.Combine(uploadsPath, fileName);
 
             await File.WriteAllBytesAsync(filePath, imageBytes);
@@ -268,7 +276,7 @@ namespace DogTracker.Components.Pages
             var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", DogId.ToString());
             Directory.CreateDirectory(uploadsPath);
     
-            var fileName = $"upload-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}{extension}";
+            var fileName = $"upload-{_selectedDocumentName}-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}{extension}";
             var filePath = Path.Combine(uploadsPath, fileName);
     
             using (var stream = file.OpenReadStream(maxAllowedSize: 10485760)) // 10MB
