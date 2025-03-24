@@ -21,7 +21,7 @@
 else
 {
     <MudPaper Class="p-4 mb-4" Elevation="3">
-        <MudText Typo="Typo.h6" class="mb-2">Répartition des dépenses</MudText>
+        <MudText Typo="Typo.h6" class="mb-2">Répartition (trois derniers mois)</MudText>
 
         @if (chartData.Length == 0)
         {
@@ -29,6 +29,10 @@ else
         }
         else
         {
+            <MudText Typo="Typo.body1">
+                <MudIcon Icon="@Icons.Material.Filled.Wallet" Class="mr-1"/>
+                @expenseSummary.QuarterTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
+            </MudText>
             <MudChart ChartType="ChartType.Pie"
                       InputData="@chartData"
                       InputLabels="@labels"
@@ -47,7 +51,7 @@ else
 else
 {
     <MudPaper Class="p-4 mb-4" Elevation="3">
-        <MudText Typo="Typo.h6">Historique des dépenses</MudText>
+        <MudText Typo="Typo.h6">Historique mensuel</MudText>
         <MudDatePicker OpenTo="OpenTo.Month"
                        FixYear="DateTime.Now.Year"
                        FixDay="1"
@@ -97,25 +101,5 @@ else
         {
             <MudText Typo="Typo.body1" Class="text-gray-600 pl-4">Aucune dépense enregistrée</MudText>
         }
-
     </MudPaper>
 }
-
-<MudPaper Class="p-4 mb-4" Elevation="3">
-    <MudText Typo="Typo.h6">Dépenses du mois</MudText>
-    @if (expenseSummary.MonthlyTotal == 0)
-    {
-        <MudText Typo="Typo.body1" Class="pl-4">Aucune dépense enregistrée</MudText>
-    }
-    else
-    {
-        <div class="mt-2 pl-4">
-            <MudText Typo="Typo.body1">
-                <MudIcon Icon="@Icons.Material.Filled.Wallet" Class="mr-1"/>
-                @expenseSummary.MonthlyTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
-            </MudText>
-            <MudText Typo="Typo.body1">Dernière dépense enregistrée
-                le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy") ?? "N/A")</MudText>
-        </div>
-    }
-</MudPaper>

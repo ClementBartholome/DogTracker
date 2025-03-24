@@ -129,12 +129,12 @@
 
     <MudItem xs="12" md="3" Class="mb-12">
         <MudCard Class="p-3">
-            <MudText Typo="Typo.subtitle1">Dépenses du mois</MudText>
+            <MudText Typo="Typo.subtitle1">Dépenses des trois derniers mois</MudText>
             @if (isLoading)
             {
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="60px"/>
             }
-            else if (expenseSummary.MonthlyTotal == 0)
+            else if (expenseSummary.QuarterTotal == 0)
             {
                 <MudText Typo="Typo.body1" Class="pl-4">Aucune dépense enregistrée</MudText>
             }
@@ -143,7 +143,7 @@
                 <div class="mt-2 pl-4">
                     <MudText Typo="Typo.body1">
                         <MudIcon Icon="@Icons.Material.Filled.Wallet" Class="mr-1"/>
-                        @expenseSummary.MonthlyTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
+                        @expenseSummary.QuarterTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
                     </MudText>
                     <MudText Typo="Typo.body1">Dernière dépense enregistrée
                         le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy") ?? "N/A")</MudText>

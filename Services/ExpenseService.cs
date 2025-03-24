@@ -1,4 +1,5 @@
 ﻿using DogTracker.Data;
+using DogTracker.Extensions;
 using DogTracker.Interfaces;
 using DogTracker.Models;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,7 @@ namespace DogTracker.Services;
 
 public class ExpenseService(AppDbContext context, ILogger<DogService> logger) : IExpenseService
 {
-    public async Task<List<Expense>> GetExpensesAsync(int dogId, int year, int month)
+    public async Task<List<Expense>> GetExpensesByMonth(int dogId, int year, int month)
     {
         try
         {
@@ -16,6 +17,36 @@ public class ExpenseService(AppDbContext context, ILogger<DogService> logger) : 
             
             logger.LogInformation("Récupération des dépenses pour le chien {DogId} du {StartDate} au {EndDate}", dogId, startDate, endDate);
             
+            var expenses = await context.Expenses
+                .Where(e => e.DogId == dogId && e.Date >= startDate && e.Date <= endDate)
+                .OrderByDescending(e => e.Date)
+                .ToListAsync();
+            
+            logger.LogInformation("Dépenses récupérées avec succès pour le chien {DogId}", dogId);
+            return expenses;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Erreur lors de la récupération des dépenses pour le chien {DogId}", dogId);
+            throw new ApplicationException("Impossible de récupérer les dépenses.", ex);
+        }
+    }
+    
+    public async Task<List<Expense>> GetExpensesByQuarter(int dogId, int year, int month)
+    {
+        try
+        {
+            // End date: last day of the specified month
+            var endDate = new DateTime(year, month, DateTime.DaysInMonth(year, month)).ToUniversalTime().AddHours(1);
+        
+            // Start date: first day of the month, 2 months before
+            var startDate = new DateTime(month > 2 ? year : year - 1, 
+                month > 2 ? month - 2 : month + 10, 
+                1).ToUniversalTime().AddHours(1);
+        
+            logger.LogInformation("Récupération des dépenses pour le chien {DogId} des 3 derniers mois ({StartDate:d} à {EndDate:d})", 
+                dogId, startDate, endDate);
+        
             var expenses = await context.Expenses
                 .Where(e => e.DogId == dogId && e.Date >= startDate && e.Date <= endDate)
                 .OrderByDescending(e => e.Date)

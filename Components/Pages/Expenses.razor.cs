@@ -16,11 +16,11 @@ namespace DogTracker.Components.Pages
 
         private bool isLoading = true;
         private List<Expense> expenseHistory;
+        private List<Expense> quarterlyExpenses;
         private DateTime? _selectedMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
         private double[] chartData;
         private string[] labels;
         private ExpenseSummaryViewModel expenseSummary = new();
-
 
         protected override async Task OnInitializedAsync()
         {
@@ -30,22 +30,27 @@ namespace DogTracker.Components.Pages
         private async Task LoadExpenses()
         {
             isLoading = true;
-            expenseHistory = await ExpenseService.GetExpensesAsync(dogId, _selectedMonth?.Year ?? DateTime.Now.Year,
+
+            // Load monthly expenses for the history list
+            expenseHistory = await ExpenseService.GetExpensesByMonth(dogId, _selectedMonth?.Year ?? DateTime.Now.Year,
                 _selectedMonth?.Month ?? DateTime.Now.Month);
+
+            // Load quarterly expenses for the chart and summary
+            quarterlyExpenses = await ExpenseService.GetExpensesByQuarter(dogId, DateTime.Now.Year, DateTime.Now.Month);
+
             PrepareChartData();
             PrepareExpenseSummary();
             isLoading = false;
         }
-        
+
         private void PrepareExpenseSummary()
         {
             if (expenseHistory.Count != 0)
             {
                 expenseSummary = new ExpenseSummaryViewModel
                 {
-                    MonthlyTotal = expenseHistory
-                        .Where(e => e.Date.Month == DateTime.Now.Month)
-                        .Sum(e => e.Amount),
+                    MonthlyTotal = expenseHistory.Sum(e => e.Amount),
+                    QuarterTotal = quarterlyExpenses.Sum(e => e.Amount),
                     LastExpenseDate = expenseHistory
                         .OrderByDescending(e => e.Date)
                         .FirstOrDefault()?.Date
@@ -57,16 +62,22 @@ namespace DogTracker.Components.Pages
                 expenseSummary = new ExpenseSummaryViewModel();
             }
         }
-        
+
         private void PrepareChartData()
         {
-            var groupedExpenses = expenseHistory
+            // Use quarterly data for the chart
+            var groupedExpenses = quarterlyExpenses
                 .GroupBy(e => e.Category)
                 .Select(g => new { Category = g.Key, Total = g.Sum(e => e.Amount) })
                 .ToList();
 
             chartData = groupedExpenses.Select(g => (double)g.Total).ToArray();
-            labels = groupedExpenses.Select(g => $"{g.Category} ({g.Total.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))}) ({(g.Total / expenseHistory.Sum(e => e.Amount) * 100):F0}%)").ToArray();        }
+
+            var totalAmount = quarterlyExpenses.Count != 0 ? quarterlyExpenses.Sum(e => e.Amount) : 1;
+            labels = groupedExpenses.Select(g =>
+                    $"{g.Category} - {g.Total.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))} ({(g.Total / totalAmount * 100):F0}%)")
+                .ToArray();
+        }
 
         private async Task OnMonthChanged(DateTime? newMonth)
         {
@@ -74,15 +85,8 @@ namespace DogTracker.Components.Pages
             if (_selectedMonth.HasValue)
             {
                 var startDate = new DateTime(_selectedMonth.Value.Year, _selectedMonth.Value.Month, 1);
-                expenseHistory = await ExpenseService.GetExpensesAsync(dogId, startDate.Year, startDate.Month);
-                PrepareChartData();
-                expenseSummary.MonthlyTotal = expenseHistory
-                    .Where(e => e.Date.Month == startDate.Month)
-                    .Sum(e => e.Amount);
-                expenseSummary.LastExpenseDate = expenseHistory
-                    .OrderByDescending(e => e.Date)
-                    .FirstOrDefault()?.Date
-                    .AddHours(1);
+                expenseHistory = await ExpenseService.GetExpensesByMonth(dogId, startDate.Year, startDate.Month);
+                PrepareExpenseSummary();
             }
 
             StateHasChanged();

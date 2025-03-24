@@ -1,4 +1,5 @@
-﻿using DogTracker.Interfaces;
+﻿using DogTracker.Extensions;
+using DogTracker.Interfaces;
 using DogTracker.Models;
 using DogTracker.Services;
 using DogTracker.ViewModels;
@@ -35,7 +36,7 @@ namespace DogTracker.Components.Pages
             _recentWalks = walks.Select(w => new WalkViewModel(w)).ToList();
             
             _currentWeight = await WeightService.GetLastWeightRecord(DogId);
-            _expenses = await ExpenseService.GetExpensesAsync(DogId, DateTime.Now.Year, DateTime.Now.Month);
+            _expenses = await ExpenseService.GetExpensesByQuarter(DogId, DateTime.Now.Year, DateTime.Now.Month);
             CalculateTodayStats();
             CalculateWeeklyStats(); 
             PrepareExpenseSummary();
@@ -79,12 +80,14 @@ namespace DogTracker.Components.Pages
         
         private void PrepareExpenseSummary()
         {
-            if (_expenses.Any())
+            if (_expenses.Count != 0)
             {
+                var currentQuarter = DateTime.Now.GetQuarter();
+                
                 expenseSummary = new ExpenseSummaryViewModel
                 {
-                    MonthlyTotal = _expenses
-                        .Where(e => e.Date.Month == DateTime.Now.Month)
+                    QuarterTotal = _expenses
+                        .Where(e => e.Date.GetQuarter() == currentQuarter)
                         .Sum(e => e.Amount),
                     LastExpenseDate = _expenses
                         .OrderByDescending(e => e.Date)
