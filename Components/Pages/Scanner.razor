@@ -78,6 +78,9 @@
                                     <MudChip T="TypeFilesEnum" Size="Size.Small"
                                              Color="@GetChipColor(file.Category)"
                                              Class="mb-2">@TypeFilesEnumExtensions.GetCategories()[file.Category]</MudChip>
+                                    <MudText Typo="Typo.subtitle1" Class="mt-2">
+                                        @(string.IsNullOrEmpty(file.Name) ? "Document sans nom" : file.Name)
+                                    </MudText>
                                     <MudText Typo="Typo.body2" Class="mt-2">
                                         Ajouté le @file.CreatedAt.ToString("dd/MM/yyyy à HH:mm")
                                     </MudText>

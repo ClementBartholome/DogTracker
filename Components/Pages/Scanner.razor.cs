@@ -19,9 +19,11 @@ namespace DogTracker.Components.Pages
         private bool _overlayAutoClose = true;
         private bool _showCategoryDialog;
         private TypeFilesEnum _selectedCategory;
+        private string _selectedDocumentName;
         private TypeFilesEnum _filterCategory ;
         private bool hasFlash = false;
         private bool flashEnabled = false;
+        
         
         IList<IBrowserFile> _files = new List<IBrowserFile>();
         [Inject] private IDialogService DialogService { get; set; } = null!;
@@ -117,9 +119,11 @@ namespace DogTracker.Components.Pages
             };
             var dialog = DialogService.Show<FileCategoryDialog>("Sélectionner la catégorie du document", parameters);
             var result = await dialog.Result;
-            if (result is { Canceled: false, Data: TypeFilesEnum typeFile })
+    
+            if (result is { Canceled: false, Data: FileDialogResult fileResult })
             {
-                _selectedCategory = typeFile;
+                _selectedCategory = fileResult.Category;
+                _selectedDocumentName = fileResult.Name;
                 await SaveScan();
             }
         }
@@ -143,7 +147,7 @@ namespace DogTracker.Components.Pages
 
         private async Task SaveScan()
         {
-            if (string.IsNullOrEmpty(previewImage) || _selectedCategory == null)
+            if (string.IsNullOrEmpty(previewImage) || _selectedCategory == null || string.IsNullOrEmpty(_selectedDocumentName))
                 return;
 
             var base64Data = previewImage.Split(',')[1];
@@ -159,6 +163,7 @@ namespace DogTracker.Components.Pages
 
             var newFile = new GedFile
             {
+                Name = _selectedDocumentName,
                 PreviewUrl = $"/uploads/{DogId}/{fileName}",
                 DownloadUrl = $"/uploads/{DogId}/{fileName}",
                 Category = _selectedCategory,
@@ -166,12 +171,12 @@ namespace DogTracker.Components.Pages
             };
 
             scannedFiles.Insert(0, newFile);
-            
+    
             Snackbar.Add("Document enregistré avec succès", Severity.Success);
 
             previewImage = null;
             isCaptureMode = false;
-            _showCategoryDialog = false;
+            _selectedDocumentName = null;
             await StopCamera();
         }
 
@@ -231,13 +236,14 @@ namespace DogTracker.Components.Pages
             {
                 { "SaveScanCallback", EventCallback.Factory.Create(this, SaveUploadedFile) }
             };
-    
+
             var dialog = DialogService.Show<FileCategoryDialog>("Sélectionner la catégorie du document", parameters);
             var result = await dialog.Result;
-    
-            if (result is { Canceled: false, Data: TypeFilesEnum typeFile })
+
+            if (result is { Canceled: false, Data: FileDialogResult fileResult })
             {
-                _selectedCategory = typeFile;
+                _selectedCategory = fileResult.Category;
+                _selectedDocumentName = fileResult.Name;
                 await SaveUploadedFile();
             }
             else
@@ -251,7 +257,7 @@ namespace DogTracker.Components.Pages
         
         private async Task SaveUploadedFile()
         {
-            if (_files.Count == 0 || _selectedCategory == null)
+            if (_files.Count == 0 || _selectedCategory == null || string.IsNullOrEmpty(_selectedDocumentName))
                 return;
     
             var file = _files[0];
@@ -287,6 +293,7 @@ namespace DogTracker.Components.Pages
     
             var newFile = new GedFile
             {
+                Name = _selectedDocumentName,
                 PreviewUrl = previewUrl,
                 DownloadUrl = $"/uploads/{DogId}/{fileName}",
                 Category = _selectedCategory,
@@ -298,6 +305,7 @@ namespace DogTracker.Components.Pages
             Snackbar.Add("Document téléchargé avec succès", Severity.Success);
     
             previewImage = null;
+            _selectedDocumentName = null;
             isCaptureMode = false;
             _files.Clear();
             CloseDrawer();

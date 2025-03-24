@@ -1,11 +1,17 @@
 ﻿@using System.Globalization
 @using DogTracker.Enums
+@using DogTracker.Models
 
 <MudDialog @bind-IsVisible="_showCategoryDialog" Options="new DialogOptions { CloseOnEscapeKey = true }">
     <TitleContent>
-        <MudText Typo="Typo.h6">Catégoriser le document</MudText>
+        <MudText Typo="Typo.h6">Catégoriser et nommer le document</MudText>
     </TitleContent>
     <DialogContent>
+        <MudTextField @bind-Value="_documentName"
+                      Label="Nom du document"
+                      Required="true"
+                      RequiredError="Le nom est requis"
+                      Class="mb-3"/>
         <MudSelect T="TypeFilesEnum" Label="Catégorie" @bind-Value="_selectedCategory" Class="mt-3">
             <MudSelectItem Value="TypeFilesEnum.Ordonnances">Ordonnance</MudSelectItem>
             <MudSelectItem Value="TypeFilesEnum.CarnetDeSante">Carnet de santé</MudSelectItem>
@@ -25,12 +31,29 @@
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
     [Parameter] public EventCallback SaveScanCallback { get; set; }
+    [Inject] ISnackbar Snackbar { get; set; }
 
     private bool _showCategoryDialog = false;
     private TypeFilesEnum _selectedCategory = TypeFilesEnum.Ordonnances;
+    public string _documentName { get; set; } = string.Empty;
+    
+    private bool IsValid() => !string.IsNullOrWhiteSpace(_documentName) && Enum.IsDefined(typeof(TypeFilesEnum), _selectedCategory);
 
-    private void Submit() => MudDialog.Close(DialogResult.Ok(_selectedCategory));
-
-
+    private void Submit()
+    {
+        if (IsValid())
+        {
+            MudDialog.Close(DialogResult.Ok(new FileDialogResult 
+            { 
+                Category = _selectedCategory, 
+                Name = _documentName 
+            }));
+        }
+        else
+        {
+            Snackbar.Add("Veuillez remplir tous les champs", Severity.Warning);
+        }
+    }
+    
     private void Cancel() => MudDialog.Cancel();
 }
