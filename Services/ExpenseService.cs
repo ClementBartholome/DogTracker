@@ -12,13 +12,10 @@ public class ExpenseService(AppDbContext context, ILogger<DogService> logger) : 
     {
         try
         {
-            var startDate = new DateTime(year, month, 1).ToUniversalTime();
-            var endDate = startDate.AddMonths(1).AddSeconds(-1).ToUniversalTime().AddHours(1);
-            
-            logger.LogInformation("Récupération des dépenses pour le chien {DogId} du {StartDate} au {EndDate}", dogId, startDate, endDate);
+            logger.LogInformation("Récupération des dépenses pour le chien {DogId} du {Month}/{Year}", dogId, month, year);
             
             var expenses = await context.Expenses
-                .Where(e => e.DogId == dogId && e.Date >= startDate && e.Date <= endDate)
+                .Where(e => e.DogId == dogId && e.Date.Month == month && e.Date.Year == year)
                 .OrderByDescending(e => e.Date)
                 .ToListAsync();
             

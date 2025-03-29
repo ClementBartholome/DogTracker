@@ -12,12 +12,9 @@ namespace DogTracker.Services
         {
             try
             {
-                var startDate = new DateTime(year, month, 1).ToUniversalTime();
-                var endDate = startDate.AddMonths(1).AddSeconds(-1).ToUniversalTime().AddHours(1);
-                
-                logger.LogInformation("Récupération des promenades pour le chien {DogId} du {StartDate} au {EndDate}", dogId, startDate, endDate);
+                logger.LogInformation("Récupération des promenades pour le chien {DogId} du {Month}/{Year}", dogId, month, year);
                 var walks = await context.Walks
-                    .Where(w => w!.DogId == dogId && w.StartTime >= startDate && w.StartTime <= endDate)
+                    .Where(w => w!.DogId == dogId && w.StartTime.Month == month && w.StartTime.Year == year)
                     .OrderByDescending(w => w!.StartTime)
                     .ToListAsync();
                 logger.LogInformation("Promenades récupérées avec succès pour le chien {DogId}", dogId);

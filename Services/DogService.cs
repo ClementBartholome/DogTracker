@@ -9,10 +9,7 @@ public class DogService(AppDbContext context, ILogger<DogService> logger) : IDog
 {
     public async Task AddDogAsync(Dog dog)
     {
-        if (dog == null)
-        {
-            throw new ArgumentNullException(nameof(dog));
-        }
+        ArgumentNullException.ThrowIfNull(dog);
 
         try
         {

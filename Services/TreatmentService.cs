@@ -14,14 +14,10 @@ public class TreatmentService(
     {
         try
         {
-            var startDate = new DateTime(year, month, 1).ToUniversalTime();
-            var endDate = startDate.AddMonths(1).AddSeconds(-1).ToUniversalTime().AddHours(1);
-
-            logger.LogInformation("Récupération des traitements pour le chien {DogId} du {StartDate} au {EndDate}",
-                dogId, startDate, endDate);
+            logger.LogInformation("Récupération des traitements pour le chien {DogId} du {Month}/{Year}", dogId, month, year);
 
             var treatments = await context.Treatments
-                .Where(t => t.DogId == dogId && t.Date >= startDate && t.Date <= endDate)
+                .Where(t => t.DogId == dogId && t.Date.Month == month && t.Date.Year == year)
                 .OrderByDescending(t => t.Date)
                 .ToListAsync();
 
