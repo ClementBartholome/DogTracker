@@ -34,14 +34,14 @@ public class ExpenseService(AppDbContext context, ILogger<DogService> logger) : 
         try
         {
             // End date: last day of the specified month
-            var endDate = new DateTime(year, month, DateTime.DaysInMonth(year, month)).ToUniversalTime().AddHours(1);
+            var endDate = new DateTime(year, month, DateTime.DaysInMonth(year, month)).ToUniversalTime().AddHours(2);
         
             // Start date: first day of the month, 2 months before
             var startDate = new DateTime(month > 2 ? year : year - 1, 
                 month > 2 ? month - 2 : month + 10, 
                 1).ToUniversalTime().AddHours(1);
         
-            logger.LogInformation("Récupération des dépenses pour le chien {DogId} des 3 derniers mois ({StartDate:d} à {EndDate:d})", 
+            logger.LogInformation("Récupération des dépenses pour le chien {DogId} des trois derniers mois ({StartDate:d} à {EndDate:d})", 
                 dogId, startDate, endDate);
         
             var expenses = await context.Expenses

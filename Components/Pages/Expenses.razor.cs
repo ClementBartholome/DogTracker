@@ -86,7 +86,6 @@ namespace DogTracker.Components.Pages
             {
                 var startDate = new DateTime(_selectedMonth.Value.Year, _selectedMonth.Value.Month, 1);
                 expenseHistory = await ExpenseService.GetExpensesByMonth(dogId, startDate.Year, startDate.Month);
-                PrepareExpenseSummary();
             }
 
             StateHasChanged();
