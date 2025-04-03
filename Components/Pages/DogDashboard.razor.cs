@@ -82,12 +82,10 @@ namespace DogTracker.Components.Pages
         {
             if (_expenses.Count != 0)
             {
-                var currentQuarter = DateTime.Now.GetQuarter();
                 
                 expenseSummary = new ExpenseSummaryViewModel
                 {
                     YearTotal = _expenses
-                        .Where(e => e.Date.GetQuarter() == currentQuarter)
                         .Sum(e => e.Amount),
                     LastExpenseDate = _expenses
                         .OrderByDescending(e => e.Date)
