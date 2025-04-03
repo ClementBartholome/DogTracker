@@ -22,7 +22,7 @@ else
 {
     <MudPaper Class="p-4 mb-4" Elevation="3">
         <MudText Typo="Typo.h6" class="mb-2">
-            Répartition (trois derniers mois)
+            Répartition (année en cours)
         </MudText>
 
         @if (chartData.Length == 0)
@@ -33,7 +33,7 @@ else
         {
             <MudText Typo="Typo.body1">
                 <MudIcon Icon="@Icons.Material.Filled.Wallet" Class="mr-1"/>
-                @expenseSummary.QuarterTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
+                @expenseSummary.YearTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
             </MudText>
             <MudChart ChartType="ChartType.Pie"
                       InputData="@chartData"

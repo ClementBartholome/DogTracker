@@ -29,26 +29,24 @@ public class ExpenseService(AppDbContext context, ILogger<DogService> logger) : 
         }
     }
     
-    public async Task<List<Expense>> GetExpensesByQuarter(int dogId, int year, int month)
+    public async Task<List<Expense>> GetYearlyExpenses(int dogId, int year)
     {
         try
         {
-            // End date: last day of the specified month
-            var endDate = new DateTime(year, month, DateTime.DaysInMonth(year, month)).ToUniversalTime().AddHours(2);
-        
-            // Start date: first day of the month, 2 months before
-            var startDate = new DateTime(month > 2 ? year : year - 1, 
-                month > 2 ? month - 2 : month + 10, 
-                1).ToUniversalTime().AddHours(1);
-        
-            logger.LogInformation("Récupération des dépenses pour le chien {DogId} des trois derniers mois ({StartDate:d} à {EndDate:d})", 
-                dogId, startDate, endDate);
-        
+            // End date: last day of the specified year
+            var endDate = new DateTime(year, 12, 31).ToUniversalTime().AddHours(2);
+    
+            // Start date: first day of the specified year
+            var startDate = new DateTime(year, 1, 1).ToUniversalTime().AddHours(1);
+    
+            logger.LogInformation("Récupération des dépenses pour le chien {DogId} de l'année {Year} ({StartDate:d} à {EndDate:d})", 
+                dogId, year, startDate, endDate);
+    
             var expenses = await context.Expenses
                 .Where(e => e.DogId == dogId && e.Date >= startDate && e.Date <= endDate)
                 .OrderByDescending(e => e.Date)
                 .ToListAsync();
-            
+        
             logger.LogInformation("Dépenses récupérées avec succès pour le chien {DogId}", dogId);
             return expenses;
         }

@@ -16,7 +16,7 @@ namespace DogTracker.Components.Pages
 
         private bool isLoading = true;
         private List<Expense> expenseHistory;
-        private List<Expense> quarterlyExpenses;
+        private List<Expense> yearlyExpenses;
         private DateTime? _selectedMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
         private double[] chartData;
         private string[] labels;
@@ -36,7 +36,7 @@ namespace DogTracker.Components.Pages
                 _selectedMonth?.Month ?? DateTime.Now.Month);
 
             // Load quarterly expenses for the chart and summary
-            quarterlyExpenses = await ExpenseService.GetExpensesByQuarter(dogId, DateTime.Now.Year, DateTime.Now.Month);
+            yearlyExpenses = await ExpenseService.GetYearlyExpenses(dogId, DateTime.Now.Year);
 
             PrepareChartData();
             PrepareExpenseSummary();
@@ -45,35 +45,43 @@ namespace DogTracker.Components.Pages
 
         private void PrepareExpenseSummary()
         {
+            var yearlyTotal = yearlyExpenses.Sum(e => e.Amount);
+
             if (expenseHistory.Count != 0)
             {
                 expenseSummary = new ExpenseSummaryViewModel
                 {
                     MonthlyTotal = expenseHistory.Sum(e => e.Amount),
-                    QuarterTotal = quarterlyExpenses.Sum(e => e.Amount),
                     LastExpenseDate = expenseHistory
                         .OrderByDescending(e => e.Date)
                         .FirstOrDefault()?.Date
-                        .AddHours(1)
+                        .AddHours(1),
+                    YearTotal = yearlyTotal
+
                 };
             }
             else
             {
-                expenseSummary = new ExpenseSummaryViewModel();
+                expenseSummary = new ExpenseSummaryViewModel
+                {
+                    MonthlyTotal = 0,
+                    LastExpenseDate = null,
+                    YearTotal = yearlyTotal
+                };
             }
         }
 
         private void PrepareChartData()
         {
             // Use quarterly data for the chart
-            var groupedExpenses = quarterlyExpenses
+            var groupedExpenses = yearlyExpenses
                 .GroupBy(e => e.Category)
                 .Select(g => new { Category = g.Key, Total = g.Sum(e => e.Amount) })
                 .ToList();
 
             chartData = groupedExpenses.Select(g => (double)g.Total).ToArray();
 
-            var totalAmount = quarterlyExpenses.Count != 0 ? quarterlyExpenses.Sum(e => e.Amount) : 1;
+            var totalAmount = yearlyExpenses.Count != 0 ? yearlyExpenses.Sum(e => e.Amount) : 1;
             labels = groupedExpenses.Select(g =>
                     $"{g.Category} - {g.Total.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))} ({(g.Total / totalAmount * 100):F0}%)")
                 .ToArray();
