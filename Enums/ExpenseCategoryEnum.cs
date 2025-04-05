@@ -2,7 +2,8 @@
 
 public enum CategoryEnum
 {
-    Nourriture,
+    Croquettes,
+    Friandises,
     Vétérinaire,
     Accessoires,
     Santé,
