@@ -1,5 +1,6 @@
 ﻿@using System.Globalization
 @using DogTracker.Enums
+@using DogTracker.Extensions
 @using DogTracker.Models
 <MudDialog>
     <DialogContent>
@@ -21,10 +22,10 @@
                    class="mb-4"
                    Adornment="Adornment.End"
                    AdornmentIcon="@Icons.Material.Filled.Category">
-            <MudSelectItem Value="CategoryEnum.Nourriture">Nourriture</MudSelectItem>
-            <MudSelectItem Value="CategoryEnum.Vétérinaire">Vétérinaire</MudSelectItem>
-            <MudSelectItem Value="CategoryEnum.Accessoires">Accessoires</MudSelectItem>
-            <MudSelectItem Value="CategoryEnum.Autre">Autre</MudSelectItem>
+            @foreach (var category in Enum.GetValues(typeof(CategoryEnum)).Cast<CategoryEnum>())
+            {
+                <MudSelectItem Value="@(category)">@category.GetDisplayName()</MudSelectItem>
+            }
         </MudSelect>
         <MudTextField @bind-Value="_expense.Description"
                       Label="Description"
@@ -50,7 +51,7 @@
     {
         Date = _date.Value,
         Amount = 0,
-        Category = CategoryEnum.Nourriture,
+        Category = CategoryEnum.Croquettes,
         Description = string.Empty,
         DogId = 1
     };
