@@ -238,7 +238,7 @@ public class NotificationService(
 
 
             var startDate = utcDateToLocal.Date;
-            var endDate = utcDateToLocal.Date.AddDays(90);
+            var endDate = utcDateToLocal.Date.AddDays(7);
 
             var notifications = await dbContext.Notifications
                 .Where(n => n.PlannedFor.Date >= startDate && n.PlannedFor.Date <= endDate && n.IsDone == false)
