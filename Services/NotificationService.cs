@@ -237,8 +237,11 @@ public class NotificationService(
             var utcDateToLocal = DateTime.UtcNow.AddHours(1);
 
 
+            var startDate = utcDateToLocal.Date;
+            var endDate = utcDateToLocal.Date.AddDays(90);
+
             var notifications = await dbContext.Notifications
-                .Where(n => n.PlannedFor.Date <= utcDateToLocal.Date && n.IsDone == false)
+                .Where(n => n.PlannedFor.Date >= startDate && n.PlannedFor.Date <= endDate && n.IsDone == false)
                 .ToListAsync(ctk);
 
             var notificationsViewModel = notifications.Select(n => new NotificationViewModel
@@ -247,8 +250,9 @@ public class NotificationService(
                 TreatmentId = n.TreatmentId,
                 Content = n.Content,
                 IsDone = n.IsDone,
+                PlannedFor = n.PlannedFor,
             }).ToList();
-            logger.LogInformation("Notifications du jour récupérées avec succès");
+            logger.LogInformation("Notifications récupérées avec succès");
             return notificationsViewModel;
         }
         catch (Exception ex)

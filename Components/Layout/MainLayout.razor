@@ -61,11 +61,14 @@
                     {
                         @foreach (var notification in _notifications.Where(n => !n.IsDone))
                         {
-                            <MudListItem Class="rounded-lg bg-light bg-opacity-10">
+                            <MudListItem Class="rounded-lg bg-light bg-opacity-10 mb-2">
                                 <div class="d-flex align-center">
                                     <div class="flex-grow-1">
                                         <MudText Typo="Typo.subtitle1"
                                                  Class="font-weight-bold">@notification.Title</MudText>
+                                        <MudText Typo="Typo.body2" Class="text-gray-600">
+                                            @notification.PlannedFor.ToString("dd/MM/yyyy")
+                                        </MudText>
                                         <div class="d-flex align-center">
                                             <MudText Class="pa-2">@notification.Content</MudText>
                                             <MudIconButton Icon="@Icons.Material.Filled.Check"
@@ -78,7 +81,7 @@
                             </MudListItem>
                             @if (notification != _notifications.Last())
                             {
-                                <MudDivider/>
+                                <MudDivider class="mb-2"/>
                             }
                         }
                     }
