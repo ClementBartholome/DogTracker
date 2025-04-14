@@ -89,12 +89,15 @@ else
                                 @expense.Category
                             </MudText>
                         </div>
-                        <div class="mt-2">
-                            <MudText Typo="Typo.body2" Class="text-gray-600">
-                                <MudIcon Icon="@Icons.Material.Filled.Description" class="mr-1"/>
-                                @expense.Description
-                            </MudText>
-                        </div>
+                        @if (expense.Description != "")
+                        {
+                            <div class="mt-2">
+                                <MudText Typo="Typo.body2" Class="text-gray-600">
+                                    <MudIcon Icon="@Icons.Material.Filled.Description" class="mr-1"/>
+                                    @expense.Description
+                                </MudText>
+                            </div>
+                        }
                     </MudListItem>
                 }
             </MudList>

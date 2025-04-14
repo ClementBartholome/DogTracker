@@ -90,7 +90,7 @@ namespace DogTracker.Components.Pages
                     LastExpenseDate = _expenses
                         .OrderByDescending(e => e.Date)
                         .FirstOrDefault()?.Date
-                        .AddHours(1)
+                        .ToLocalTime()
                 };
             }
             else
