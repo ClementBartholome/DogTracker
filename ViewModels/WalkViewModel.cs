@@ -12,8 +12,8 @@ namespace DogTracker.ViewModels
         }
 
         public int Id => Walk.Id;
-        public DateTime AdjustedStartTime => Walk.StartTime.ToLocalTime();
-        public DateTime AdjustedEndTime => Walk.EndTime.ToLocalTime();
+        public DateTime AdjustedStartTime => TimeZoneInfo.ConvertTime(Walk.StartTime, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
+        public DateTime AdjustedEndTime => TimeZoneInfo.ConvertTime(Walk.EndTime, TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"));
         public double Distance => Walk.Distance;
         public string? Notes => Walk.Notes;
     }

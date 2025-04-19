@@ -83,7 +83,7 @@
                 <div class="mt-2 d-flex flex-column gap-2 pl-4">
                     <MudText Typo="Typo.body1">
                         <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Class="mr-1"/>
-                        @lastWalk.AdjustedStartTime.ToString("dd/MM/yyyy à HH\\hmm")
+                        @lastWalk.AdjustedStartTime.ToString("dd/MM/yyyy à HH\\hmm", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
                     </MudText>
                     <MudText Typo="Typo.body1">
                         <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" Class="mr-1"/>
@@ -146,7 +146,7 @@
                         @expenseSummary.YearTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
                     </MudText>
                     <MudText Typo="Typo.body1">Dernière dépense enregistrée
-                        le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy") ?? "N/A")</MudText>
+                        le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.GetCultureInfo("fr-FR")) ?? "N/A")</MudText>
                 </div>
             }
         </MudCard>

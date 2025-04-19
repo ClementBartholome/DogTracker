@@ -82,15 +82,21 @@ namespace DogTracker.Components.Pages
         {
             if (_expenses.Count != 0)
             {
+                var franceTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"); 
+
+                var utcDate = _expenses
+                    .OrderByDescending(e => e.Date)
+                    .FirstOrDefault()?.Date;
+
+                DateTime? convertedDate = utcDate.HasValue 
+                    ? TimeZoneInfo.ConvertTimeFromUtc(utcDate.Value.ToUniversalTime(), franceTimeZone)
+                    : null;
                 
                 expenseSummary = new ExpenseSummaryViewModel
                 {
                     YearTotal = _expenses
                         .Sum(e => e.Amount),
-                    LastExpenseDate = _expenses
-                        .OrderByDescending(e => e.Date)
-                        .FirstOrDefault()?.Date
-                        .ToLocalTime()
+                    LastExpenseDate = convertedDate,
                 };
             }
             else

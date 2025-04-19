@@ -293,7 +293,7 @@ namespace DogTracker.Components.Pages
         private string GetFormattedDuration()
         {
             if (!startTime.HasValue) return "00:00:00";
-            var duration = DateTime.Now - startTime.Value.ToLocalTime();
+            var duration = DateTime.Now - startTime.Value.AddHours(2);
             return duration.ToString(@"hh\:mm\:ss");
         }
 

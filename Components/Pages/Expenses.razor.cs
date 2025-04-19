@@ -46,16 +46,23 @@ namespace DogTracker.Components.Pages
         private void PrepareExpenseSummary()
         {
             var yearlyTotal = yearlyExpenses.Sum(e => e.Amount);
+            
+            var franceTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Romance Standard Time"); 
 
+            var utcDate = expenseHistory
+                .OrderByDescending(e => e.Date)
+                .FirstOrDefault()?.Date;
+
+            DateTime? convertedDate = utcDate.HasValue 
+                ? TimeZoneInfo.ConvertTimeFromUtc(utcDate.Value.ToUniversalTime(), franceTimeZone)
+                : null;
+            
             if (expenseHistory.Count != 0)
             {
                 expenseSummary = new ExpenseSummaryViewModel
                 {
                     MonthlyTotal = expenseHistory.Sum(e => e.Amount),
-                    LastExpenseDate = expenseHistory
-                        .OrderByDescending(e => e.Date)
-                        .FirstOrDefault()?.Date
-                        .ToLocalTime(),
+                    LastExpenseDate = convertedDate,
                     YearTotal = yearlyTotal
 
                 };
