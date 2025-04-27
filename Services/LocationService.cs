@@ -43,6 +43,11 @@ public class LocationService : ILocationService
         await _jsRuntime.InvokeVoidAsync("stopWatchingPosition");
     }
 
+    public async Task StopUntrackedWalkAsync()
+    {
+        await _jsRuntime.InvokeVoidAsync("stopUntrackedWalk");
+    }
+
     [JSInvokable]
     public void OnLocationUpdate(GeolocationPosition position)
     {
@@ -60,8 +65,27 @@ public class LocationService : ILocationService
         return Task.CompletedTask;
     }
     
-    public async Task<WalkDataViewModel?> CheckForOngoingWalkAsync()
+    public async Task<WalkDataViewModel?> CheckForOngoingTrackedWalkAsync()
     {
         return await _jsRuntime.InvokeAsync<WalkDataViewModel?>("getStoredWalkData");
+    }
+    
+    public async Task<DateTime> CheckForOngoingUntrackedWalkAsync()
+    {
+        try
+        {
+            var result = await _jsRuntime.InvokeAsync<string>("getStoredUntrackedWalkData");
+            return string.IsNullOrEmpty(result) ? DateTime.MinValue : DateTime.Parse(result, null, System.Globalization.DateTimeStyles.RoundtripKind);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de la récupération de la date de promenade non suivie : {ex.Message}");
+            return DateTime.MinValue;
+        }
+    }
+    
+    public async Task StartTimer()
+    {
+        await _jsRuntime.InvokeVoidAsync("startTimer");
     }
 }

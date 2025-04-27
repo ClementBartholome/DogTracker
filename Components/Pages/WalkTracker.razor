@@ -8,6 +8,13 @@
 @rendermode InteractiveServer
 
 
+@if (isLoading)
+{
+    <MudOverlay DarkBackground="true" Absolute="true">
+        <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+    </MudOverlay>}
+else
+{
     <MudPaper class="p-4 mb-4" Elevation="3">
         <MudText Typo="Typo.h5" class="mb-4">
             <MudIcon Icon="@Icons.Material.Filled.Pets" Size="Size.Large" class="mr-2 icon-circle"/>
@@ -15,17 +22,23 @@
         </MudText>
         @if (!isTracking)
         {
-            <MudButton OnClick="StartWalk" Color="Color.Primary" Variant="Variant.Filled"
-                       class="w-full text-white font-bold py-3 rounded-lg">
-                Démarrer la promenade
-            </MudButton>
+            <div class="d-flex align-items-center mb-2">
+                <MudButton OnClick="StartWalk" Color="Color.Primary" Variant="Variant.Filled"
+                           class="w-full text-white font-bold py-1 rounded-lg">
+                    Démarrer la promenade
+                </MudButton>
+                <MudCheckBox T="bool" @bind-Value="isTrackingEnabled" Label="Suivi GPS"/>
+            </div>
         }
         else
         {
             <div class="space-y-4">
                 <div class="text-center">
                     <p class="text-xl">Durée: @GetFormattedDuration()</p>
-                    <p class="text-lg">Distance: @(currentDistance.ToString("F2")) km</p>
+                    @if (isTrackingEnabled)
+                    {
+                        <p class="text-lg">Distance: @(currentDistance.ToString("F2")) km</p>
+                    }
                 </div>
 
                 <MudButton OnClick="ConfirmStopWalk" Color="Color.Primary" Variant="Variant.Filled"
@@ -35,66 +48,67 @@
             </div>
         }
     </MudPaper>
+}
 
-    <div id="map" style="height: 300px;" class="mb-4 rounded-lg w-100"></div>
+<div id="map" style="height: 300px;" class="mb-4 rounded-lg w-100"></div>
 
-    @if (isLoading)
-    {
-        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
-    }
-    else
-    {
-        <MudPaper Class="p-4 mb-4" Elevation="3">
-            <MudText Typo="Typo.h6">Historique des promenades</MudText>
-            <MudDatePicker OpenTo="OpenTo.Month"
-                           FixYear="DateTime.Now.Year"
-                           FixDay="1"
-                           DateFormat="MMM/yy"
-                           Class="mb-4"
-                           ShowToolbar="false"
-                           AutoClose="true"
-                           DateChanged="OnMonthChanged"
-                           Date="@_selectedMonth"
-                           Culture="@CultureInfo.GetCultureInfo("fr-FR")"
-            />
-            @if (walkHistory?.Any() == true)
-            {
-                <MudList T="object">
-                    @foreach (var walk in walkHistory.OrderByDescending(w => w.StartTime).Select(w => new WalkViewModel(w)))
-                    {
-                        <MudListItem>
-                            <div class="d-flex">
-                                <MudText Typo="Typo.subtitle1">
-                                    <MudIcon Icon="@Icons.Material.Filled.CalendarToday" class="mr-1" />
-                                    @walk.AdjustedStartTime.ToString("dd/MM/yyyy HH\\hmm")
-                                </MudText>
-                                <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete"
-                                               Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
-                                               class="ml-auto"
-                                               OnClick="@(() => ConfirmDeleteWalk(1, walk.Id))"/>
-                                <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" aria-label="more"
-                                               Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
-                                               class="ml-2"
-                                               Href="@($"/walk/{walk.Id}")"
-                                />
-                            </div>
-                            <MudText Typo="Typo.body2" Class="text-gray-600">
-                                <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" class="mr-1" />
-                                <span>@walk.Distance.ToString("F2") km</span>
-                                <MudIcon Icon="@Icons.Material.Filled.Timer" class="ml-2 mr-1" />
-                                <span>@{
-                                        var lastWalkDuration = (walk.AdjustedEndTime - walk.AdjustedStartTime).TotalMinutes;
-                                        var formattedDuration = lastWalkDuration < 60 ? $"{lastWalkDuration:F0} min" : $"{lastWalkDuration / 60:F0}h{lastWalkDuration % 60:00}min";
-                                    }
-                                    @formattedDuration</span>
+@if (isLoading)
+{
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
+}
+else
+{
+    <MudPaper Class="p-4 mb-4" Elevation="3">
+        <MudText Typo="Typo.h6">Historique des promenades</MudText>
+        <MudDatePicker OpenTo="OpenTo.Month"
+                       FixYear="DateTime.Now.Year"
+                       FixDay="1"
+                       DateFormat="MMM/yy"
+                       Class="mb-4"
+                       ShowToolbar="false"
+                       AutoClose="true"
+                       DateChanged="OnMonthChanged"
+                       Date="@_selectedMonth"
+                       Culture="@CultureInfo.GetCultureInfo("fr-FR")"
+        />
+        @if (walkHistory?.Any() == true)
+        {
+            <MudList T="object">
+                @foreach (var walk in walkHistory.OrderByDescending(w => w.StartTime).Select(w => new WalkViewModel(w)))
+                {
+                    <MudListItem>
+                        <div class="d-flex">
+                            <MudText Typo="Typo.subtitle1">
+                                <MudIcon Icon="@Icons.Material.Filled.CalendarToday" class="mr-1"/>
+                                @walk.AdjustedStartTime.ToString("dd/MM/yyyy HH\\hmm")
                             </MudText>
-                        </MudListItem>
-                    }
-                </MudList>
-            }
-            else
-            {
-                <MudText Typo="Typo.body1" Class="text-gray-600">Aucune promenade enregistrée</MudText>
-            }
-        </MudPaper>
-    }
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="delete"
+                                           Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                           class="ml-auto"
+                                           OnClick="@(() => ConfirmDeleteWalk(1, walk.Id))"/>
+                            <MudIconButton Icon="@Icons.Material.Filled.MoreHoriz" aria-label="more"
+                                           Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                                           class="ml-2"
+                                           Href="@($"/walk/{walk.Id}")"
+                            />
+                        </div>
+                        <MudText Typo="Typo.body2" Class="text-gray-600">
+                            <MudIcon Icon="@Icons.Material.Filled.DirectionsWalk" class="mr-1"/>
+                            <span>@walk.Distance.ToString("F2") km</span>
+                            <MudIcon Icon="@Icons.Material.Filled.Timer" class="ml-2 mr-1"/>
+                            <span>@{
+                                    var lastWalkDuration = (walk.AdjustedEndTime - walk.AdjustedStartTime).TotalMinutes;
+                                    var formattedDuration = lastWalkDuration < 60 ? $"{lastWalkDuration:F0} min" : $"{lastWalkDuration / 60:F0}h{lastWalkDuration % 60:00}min";
+                                }
+                                @formattedDuration</span>
+                        </MudText>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+        else
+        {
+            <MudText Typo="Typo.body1" Class="text-gray-600">Aucune promenade enregistrée</MudText>
+        }
+    </MudPaper>
+}

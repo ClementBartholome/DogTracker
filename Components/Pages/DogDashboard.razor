@@ -11,7 +11,26 @@
     </MudItem>
     <MudItem xs="12" md="3">
         <MudCard Class="p-3">
-            <MudText Typo="Typo.subtitle1">Récap des promenades</MudText>
+            @if (!isLoading)
+            {
+                <MudCardHeader Class="p-2 d-flex align-items-center">
+                    <MudText Typo="Typo.subtitle1">Récap des promenades</MudText>
+                    <MudSpacer></MudSpacer>
+                    @if (!isTracking)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Variant="Variant.Filled"
+                                       Color="Color.Inherit" Size="Size.Small"
+                                       OnClick="StartWalkNoTracking"></MudIconButton>
+                    }
+                    else
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Stop" Variant="Variant.Filled" Color="Color.Inherit"
+                                       Size="Size.Small"
+                                       OnClick="StopWalkNoTracking" Class="mr-2"></MudIconButton>
+                        <MudText Typo="Typo.caption">@GetFormattedDuration()</MudText>
+                    }
+                </MudCardHeader>
+            }
             @if (isLoading)
             {
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="130px"/>
@@ -22,8 +41,10 @@
             }
             else
             {
-                <MudChipSet T="string" @bind-SelectedValue="_selectedTimePeriod" Class="mt-2 mb-3 d-flex justify-center">
-                    <MudChip Text="Aujourd'hui" Value="@("today")" Default="true" Color="Color.Primary">Aujourd'hui</MudChip>
+                <MudChipSet T="string" @bind-SelectedValue="_selectedTimePeriod"
+                            Class="mt-2 mb-3 d-flex justify-center">
+                    <MudChip Text="Aujourd'hui" Value="@("today")" Default="true" Color="Color.Primary">Aujourd'hui
+                    </MudChip>
                     <MudChip Text="Semaine" Value="@("week")" Color="Color.Primary">Semaine</MudChip>
                 </MudChipSet>
 

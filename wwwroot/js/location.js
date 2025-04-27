@@ -1,13 +1,9 @@
 ﻿let watchId = null; // Identifiant pour la surveillance de la position
 let dotNetHelper = null; // Référence à l'objet .NET pour les appels interopérables
-let lastRecordedTime = 0; // Dernière fois que la position a été enregistrée
 const POSITION_INTERVAL = 30000; // Interval de temps pour enregistrer la position
 
 // Variables pour la simulation de position
-let simulationInterval = null; 
-const baseLat = 46.1733888;
-const baseLon = -1.1337728;
-const maxOffset = 0.001;
+let simulationInterval = null;
 
 
 function initializeWalkData() {
@@ -151,10 +147,24 @@ window.startWatchingPosition = (helper, simulate) => {
     }
 };
 
+window.startTimer = () => {
+    let startTime = new Date();
+    localStorage.setItem('walkStartTime', startTime.toISOString());
+};
+
+window.getStoredUntrackedWalkData = () => {
+    return localStorage.getItem('walkStartTime');
+};
+
 window.getStoredWalkData = () => {
     const walkData = localStorage.getItem('currentWalk');
     return walkData ? JSON.parse(walkData) : null;
 };
+
+window.isTrackingEnabled = () => {
+    const walkData = localStorage.getItem('currentWalk');
+    return walkData !== null;
+}
 
 window.stopWatchingPosition = () => {
     const walkData = localStorage.getItem('currentWalk');
@@ -172,7 +182,12 @@ window.stopWatchingPosition = () => {
     return walkData;
 };
 
+window.stopUntrackedWalk = () => {
+  localStorage.removeItem('walkStartTime');
+};
+
 window.checkForOngoingWalk = () => {
     const walkData = localStorage.getItem('currentWalk');
     return walkData ? JSON.parse(walkData) : null;
 };
+

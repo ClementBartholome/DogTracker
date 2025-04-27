@@ -20,77 +20,68 @@ namespace DogTracker.Components.Pages
         private Timer timer;
         private IJSObjectReference? module;
         private IJSObjectReference? currentPositionMarker;
+        private bool isTrackingEnabled = false;
 
-        
-        [Inject] PersistentComponentState ApplicationState { get; set; }
         [Inject] private ISnackbar Snackbar { get; set; } = null!;
         [Inject] private IDialogService DialogService { get; set; }
 
         private DateTime? _selectedMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-        
+
         protected override async Task OnInitializedAsync()
         {
+            isLoading = true;
+
             try
             {
-                isLoading = true;
                 walkHistory = await WalkService.GetWalksByMonthAsync(DogId, _selectedMonth?.Year ?? DateTime.Now.Year,
                     _selectedMonth?.Month ?? DateTime.Now.Month);
 
+                var ongoingTrackedWalk = await LocationService.CheckForOngoingTrackedWalkAsync();
                 
-                // ApplicationState.RegisterOnPersisting(PersistState);
-                var hasPersistentState = false;
-                
-                // if (ApplicationState.TryTakeFromJson<List<GeolocationPosition>>("positions", out var savedPositions) &&
-                //     ApplicationState.TryTakeFromJson<double>("currentDistance", out var savedDistance) &&
-                //     ApplicationState.TryTakeFromJson<DateTime?>("startTime", out var savedStartTime) &&
-                //     ApplicationState.TryTakeFromJson<bool>("isTracking", out var savedIsTracking))
-                // {
-                //     positions = savedPositions;
-                //     currentDistance = savedDistance;
-                //     startTime = savedStartTime;
-                //     isTracking = savedIsTracking;
-                //     hasPersistentState = true;
-                // }
-
-                // Si pas de données persistantes, vérifions le localStorage
-                if (!hasPersistentState)
+                if (ongoingTrackedWalk != null)
                 {
-                    var ongoingWalk = await LocationService.CheckForOngoingWalkAsync();
-                    if (ongoingWalk != null)
+                    isTracking = true;
+                    isTrackingEnabled = true;
+                    startTime = ongoingTrackedWalk.StartTime.ToLocalTime();
+                    
+                    positions = ongoingTrackedWalk.Positions.ToList();
+
+                    // Recalculer la distance totale
+                    currentDistance = 0;
+                    for (var i = 1; i < positions.Count; i++)
                     {
-                        isTracking = true;
-                        startTime = ongoingWalk.StartTime;
-                        positions = ongoingWalk.Positions.ToList();
-
-                        // Recalculer la distance totale
-                        currentDistance = 0;
-                        for (var i = 1; i < positions.Count; i++)
-                        {
-                            var prev = positions[i - 1];
-                            var curr = positions[i];
-                            currentDistance += CalculateDistance(
-                                prev.Latitude, prev.Longitude,
-                                curr.Latitude, curr.Longitude);
-                        }
-
-                        Snackbar.Add("Reprise de la promenade en cours", Severity.Info);
+                        var prev = positions[i - 1];
+                        var curr = positions[i];
+                        currentDistance += CalculateDistance(
+                            prev.Latitude, prev.Longitude,
+                            curr.Latitude, curr.Longitude);
                     }
-                }
-
-                // Si on a une promenade en cours
-                if (isTracking)
-                {
+                    
                     await LocationService.StartWatchingPositionAsync();
                     timer = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, 0, 1000);
+                    
+                    // On n'enregistre l'événement qu'une seule fois
+                    LocationService.OnPositionChanged += OnPositionChanged;
+
+                    Snackbar.Add("Reprise de la promenade en cours", Severity.Info);
                 }
 
-                // On n'enregistre l'événement qu'une seule fois
-                LocationService.OnPositionChanged += OnPositionChanged;
+                if (ongoingTrackedWalk == null)
+                {
+                    var ongoingWalkStartTime = await LocationService.CheckForOngoingUntrackedWalkAsync();
+                    if (ongoingWalkStartTime != DateTime.MinValue)
+                    {
+                        isTracking = true;
+                        isTrackingEnabled = false;
+                        startTime = ongoingWalkStartTime.ToLocalTime();
+                        timer = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, 0, 1000);
+                        Snackbar.Add("Reprise de la promenade", Severity.Info);
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur lors de l'initialisation: {ex.Message}");
-                Snackbar.Add("Erreur lors de l'initialisation", Severity.Error);
             }
             finally
             {
@@ -98,6 +89,34 @@ namespace DogTracker.Components.Pages
             }
         }
         
+        private async Task StartWalk()
+        {
+            try
+            {
+                isTracking = true;
+                startTime = DateTime.Now;
+                positions.Clear();
+                currentDistance = 0;
+
+                if (isTrackingEnabled)
+                {
+                    await LocationService.StartWatchingPositionAsync();
+                }
+                else
+                {
+                    await LocationService.StartTimer();
+                }
+
+                Snackbar.Add("Promenade lancée !", Severity.Success);
+
+                timer = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, 0, 1000);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur lors du démarrage de la promenade: {ex.Message}");
+            }
+        }
+
         private async Task OnMonthChanged(DateTime? newMonth)
         {
             _selectedMonth = newMonth;
@@ -112,36 +131,6 @@ namespace DogTracker.Components.Pages
             }
 
             StateHasChanged();
-        }
-
-        private Task PersistState()
-        {
-            ApplicationState.PersistAsJson("positions", positions);
-            ApplicationState.PersistAsJson("currentDistance", currentDistance);
-            ApplicationState.PersistAsJson("startTime", startTime);
-            ApplicationState.PersistAsJson("isTracking", isTracking);
-            return Task.CompletedTask;
-        }
-
-        private async Task StartWalk()
-        {
-            try
-            {
-                isTracking = true;
-                startTime = DateTime.Now;
-                positions.Clear();
-                currentDistance = 0;
-
-                await LocationService.StartWatchingPositionAsync();
-
-                Snackbar.Add("Promenade lancée !", Severity.Success);
-
-                timer = new Timer(_ => { InvokeAsync(StateHasChanged); }, null, 0, 1000);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erreur lors du démarrage de la promenade: {ex.Message}");
-            }
         }
 
         private async Task ConfirmStopWalk()
@@ -174,8 +163,17 @@ namespace DogTracker.Components.Pages
             try
             {
                 isLoading = true;
-                await LocationService.StopWatchingPositionAsync();
-                timer?.Dispose();
+
+                if (isTrackingEnabled)
+                {
+                    await LocationService.StopWatchingPositionAsync();
+                }
+                else
+                {
+                    await LocationService.StopUntrackedWalkAsync();
+                }
+
+                await timer.DisposeAsync();
                 isTracking = false;
 
                 var walk = new Walk
@@ -199,7 +197,7 @@ namespace DogTracker.Components.Pages
                 Snackbar.Add("Erreur lors de l'enregistrement de la promenade", Severity.Error);
             }
         }
-        
+
         private async Task ConfirmDeleteWalk(int dogId, int walkId)
         {
             var parameters = new DialogParameters
