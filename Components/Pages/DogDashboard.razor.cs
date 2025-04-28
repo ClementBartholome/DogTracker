@@ -82,10 +82,11 @@ namespace DogTracker.Components.Pages
 
         private async Task StopWalkNoTracking()
         {
+            isLoading = true;
+
             try
             {
                 isTracking = false;
-
                 await LocationService.StopUntrackedWalkAsync();
 
                 var walk = new Walk
@@ -97,12 +98,22 @@ namespace DogTracker.Components.Pages
 
                 await WalkService.AddWalkAsync(DogId, walk);
 
+                var walks = await WalkService.GetRecentWalksAsync(DogId);
+                _recentWalks = walks.Select(w => new WalkViewModel(w)).ToList();
+
+                CalculateTodayStats();
+
+
                 Snackbar.Add("Promenade enregistrée !", Severity.Success);
                 await timer.DisposeAsync();
             }
             catch (Exception ex)
             {
                 Snackbar.Add($"Erreur lors de l'enregistrement de la promenade : {ex.Message}", Severity.Error);
+            }
+            finally
+            {
+                isLoading = false;
             }
         }
 
