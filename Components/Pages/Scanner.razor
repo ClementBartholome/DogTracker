@@ -73,7 +73,7 @@
                     {
                         <MudItem xs="12" sm="6" md="4">
                             <MudCard Elevation="2">
-                                <MudCardMedia Image="@file.PreviewUrl" Height="200"/>
+                                <MudCardMedia Image="@file.PreviewUrl" Height="300"/>
                                 <MudCardContent>
                                     <MudChip T="TypeFilesEnum" Size="Size.Small"
                                              Color="@GetChipColor(file.Category)"
@@ -93,17 +93,17 @@
                                         Voir
                                     </MudButton>
                                     <MudButton Variant="Variant.Text"
-                                               Color="Color.Error"
-                                               OnClick="() => DeleteFile(file)"
-                                               StartIcon="@Icons.Material.Filled.Delete">
-                                        Supprimer
-                                    </MudButton>
-                                    <MudButton Variant="Variant.Text"
                                                Color="Color.Primary"
                                                Href="@file.DownloadUrl"
                                                Download
                                                StartIcon="@Icons.Material.Filled.Download">
                                         Télécharger
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Text"
+                                               Color="Color.Error"
+                                               OnClick="() => DeleteFile(file)"
+                                               StartIcon="@Icons.Material.Filled.Delete">
+                                        Supprimer
                                     </MudButton>
                                 </MudCardActions>
                             </MudCard>
