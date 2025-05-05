@@ -104,8 +104,20 @@ builder.Services.AddHttpClient("OneSignalClient", client =>
     client.Timeout = TimeSpan.FromSeconds(60);  
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLovableApp", policy =>
+    {
+        policy.WithOrigins("https://walk-about-tracker.lovable.app")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 
 var app = builder.Build();
+
+app.UseCors("AllowLovableApp");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
