@@ -61,7 +61,6 @@ h1:focus {
     padding: 5px;
 }
 
-
 .underline {
     padding: 10px 0 0 10px;
     position: relative;
@@ -79,6 +78,21 @@ h1:focus {
     z-index: -1;
 }
 
+.underline-subtitle {
+    position: relative;
+    width: fit-content;
+}
+
+.underline-subtitle::before {
+    content: "";
+    position: absolute;
+    width: 80%;
+    bottom: 0;
+    height: 3px;
+    transform: skew(-12deg);
+    background: var(--mud-palette-primary);
+    z-index: 1;
+}
 
 .mud-appbar {
     border-radius: 30px;
@@ -99,4 +113,8 @@ h1:focus {
 
 .mud-card-media {
     background-position: top !important;
+}
+
+.mud-navmenu.mud-navmenu-dense .mud-nav-link {
+    padding: 4px 10px 4px 10px !important;
 }

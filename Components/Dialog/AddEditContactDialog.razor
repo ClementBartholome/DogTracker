@@ -1,0 +1,84 @@
+﻿@using DogTracker.Components.Validators
+@using DogTracker.Models
+@using Severity = MudBlazor.Severity
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
+    <DialogContent>
+        <MudForm Model="@contact" @ref="form" Validation="@(contactValidator.ValidateValue)" ValidationDelay="0">
+            <MudText Typo="Typo.h6">@(_isEdit ? "Modifier le contact" : "Ajouter un contact")</MudText>
+            <MudTextField @bind-Value="contact.Name"
+                          For="(() => contact.Name)"
+                          Immediate="true"
+                          Label="Nom"
+                          Required="true"/>
+            <MudTextField @bind-Value="contact.Type"
+                          For="(() => contact.Type)"
+                          Immediate="true"
+                          Label="Type"
+                          Required="true"/>
+            <MudTextField @bind-Value="contact.Email"
+                          For="(() => contact.Email)"
+                          Immediate="true"
+                          Label="Email"
+                          Required="true"/>
+            <MudTextField @bind-Value="contact.Phone"
+                          For="(() => contact.Phone)"
+                          Immediate="true"
+                          Label="Téléphone"
+                          Required="true"/>
+            <MudTextField @bind-Value="contact.Address"
+                          For="(() => contact.Address)"
+                          Immediate="true"
+                          Label="Adresse"
+                          Required="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Color="Color.Primary">@(_isEdit ? "Enregistrer" : "Ajouter")</MudButton>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">Annuler</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+    [Parameter] public Contact? Contact { get; set; }
+    private Contact contact = new();
+    private bool _isEdit = false;
+    private MudForm form;
+    private ContactFluentValidator contactValidator = new();
+
+    protected override void OnInitialized()
+    {
+        if (Contact != null)
+        {
+            contact = new Contact
+            {
+                Id = Contact.Id,
+                DogId = Contact.DogId,
+                Name = Contact.Name,
+                Type = Contact.Type,
+                Email = Contact.Email,
+                Phone = Contact.Phone,
+                Address = Contact.Address
+            };
+            _isEdit = true;
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            MudDialog.Close(DialogResult.Ok(contact));
+        }
+        else
+        {
+            Snackbar.Add("Merci de remplir tous les champs correctement.", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -23,9 +23,12 @@ else
         @if (!isTracking)
         {
             <div class="d-flex align-items-center mb-2">
-                <MudButton OnClick="StartWalk" Color="Color.Primary" Variant="Variant.Filled"
-                           class="w-full text-white font-bold py-1 rounded-lg">
-                    Démarrer la promenade
+                <MudButton OnClick="StartWalk"
+                           Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.PlayArrow"
+                           Class="w-full text-white font-bold py-1 rounded-lg">
+                    Nouvelle promenade
                 </MudButton>
                 <MudCheckBox T="bool" @bind-Value="isTrackingEnabled" Label="Suivi GPS"/>
             </div>
@@ -41,8 +44,11 @@ else
                     }
                 </div>
 
-                <MudButton OnClick="ConfirmStopWalk" Color="Color.Primary" Variant="Variant.Filled"
-                           class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg">
+                <MudButton OnClick="ConfirmStopWalk"
+                           Color="Color.Primary"
+                           Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Stop"
+                           Class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg">
                     Terminer la promenade
                 </MudButton>
             </div>

@@ -14,7 +14,7 @@
             @if (!isLoading)
             {
                 <MudCardHeader Class="p-2 d-flex align-items-center">
-                    <MudText Typo="Typo.subtitle1">Récap des promenades</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="underline-subtitle">Récap des promenades</MudText>
                     <MudSpacer></MudSpacer>
                     @if (!isTracking)
                     {
@@ -89,7 +89,7 @@
 
     <MudItem xs="12" md="3">
         <MudCard Class="p-3">
-            <MudText Typo="Typo.subtitle1">Dernière promenade</MudText>
+            <MudText Typo="Typo.subtitle1" Class="underline-subtitle">Dernière promenade</MudText>
             @if (isLoading)
             {
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="110px"/>
@@ -125,7 +125,7 @@
 
     <MudItem xs="12" md="3">
         <MudCard Class="p-3">
-            <MudText Typo="Typo.subtitle1">Poids actuel</MudText>
+            <MudText Typo="Typo.subtitle1" Class="underline-subtitle">Poids actuel</MudText>
             @if (isLoading)
             {
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="60px"/>
@@ -150,7 +150,7 @@
 
     <MudItem xs="12" md="3" Class="mb-12">
         <MudCard Class="p-3">
-            <MudText Typo="Typo.subtitle1">Dépenses (année en cours)</MudText>
+            <MudText Typo="Typo.subtitle1" Class="underline-subtitle">Dépenses</MudText>
             @if (isLoading)
             {
                 <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="60px"/>
@@ -164,7 +164,7 @@
                 <div class="mt-2 pl-4">
                     <MudText Typo="Typo.body1">
                         <MudIcon Icon="@Icons.Material.Filled.Wallet" Class="mr-1"/>
-                        @expenseSummary.YearTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR"))
+                        @expenseSummary.YearTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("fr-FR")) (année en cours)
                     </MudText>
                     <MudText Typo="Typo.body1">Dernière dépense enregistrée
                         le @(expenseSummary.LastExpenseDate?.ToString("dd/MM/yyyy", System.Globalization.CultureInfo.GetCultureInfo("fr-FR")) ?? "N/A")</MudText>

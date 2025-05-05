@@ -77,6 +77,7 @@ builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<ITreatmentService, TreatmentService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<IWeightService, WeightService>();
+builder.Services.AddScoped<ContactService>();
 
 builder.Services.AddQuartz(q =>
 {
@@ -108,7 +109,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLovableApp", policy =>
     {
-        policy.WithOrigins("https://walk-about-tracker.lovable.app")
+        policy.WithOrigins(
+                "https://walk-about-tracker.lovable.app",
+                "https://localhost:7067"
+            )
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -133,7 +137,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options => 
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-        options.RoutePrefix = string.Empty;
+        options.RoutePrefix = "swagger";
     });
     
     // seed data with a default dog
