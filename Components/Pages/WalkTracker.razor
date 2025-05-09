@@ -104,8 +104,10 @@ else
                             <MudIcon Icon="@Icons.Material.Filled.Timer" class="ml-2 mr-1"/>
                             <span>@{
                                     var lastWalkDuration = (walk.AdjustedEndTime - walk.AdjustedStartTime).TotalMinutes;
-                                    var formattedDuration = lastWalkDuration < 60 ? $"{lastWalkDuration:F0} min" : $"{lastWalkDuration / 60:F0}h{lastWalkDuration % 60:00}min";
-                                }
+                                    var formattedDuration = lastWalkDuration < 60 
+                                        ? $"{lastWalkDuration:F0} min" 
+                                        : $"{Math.Floor(lastWalkDuration / 60):F0}h{lastWalkDuration % 60:00}";
+                                  }
                                 @formattedDuration</span>
                         </MudText>
                     </MudListItem>
