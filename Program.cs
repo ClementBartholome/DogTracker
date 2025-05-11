@@ -107,11 +107,15 @@ builder.Services.AddHttpClient("OneSignalClient", client =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLovableApp", policy =>
+    options.AddPolicy("MesPromenades", policy =>
     {
         policy.WithOrigins(
                 "https://walk-about-tracker.lovable.app",
-                "https://localhost:7067"
+                "https://localhost:7067",
+                "http://localhost:3000",
+                "exp://192.168.1.33:8081",  // URL de développement local
+                "exp://exp.host/@clementbartholome/mes-promenades",  // URL de production
+                "exp://u.expo.dev/update/8e4f36bf-7f4e-4c08-97b5-9817ef2b5dd1"  // URL du build internal distribution
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
@@ -121,7 +125,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseCors("AllowLovableApp");
+app.UseCors("MesPromenades");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
