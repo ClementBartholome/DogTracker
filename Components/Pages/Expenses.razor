@@ -57,13 +57,14 @@ else
         <MudDatePicker OpenTo="OpenTo.Month"
                        FixYear="DateTime.Now.Year"
                        FixDay="1"
-                       DateFormat="MMM/yy"
+                       DateFormat="MMMM yyyy"
                        Class="mb-4"
                        ShowToolbar="false"
                        AutoClose="true"
-                       Date="@_selectedMonth"
                        DateChanged="OnMonthChanged"
-                       Culture="@CultureInfo.GetCultureInfo("fr-FR")"/>
+                       Date="@_selectedMonth"
+                       Culture="@CultureInfo.GetCultureInfo("fr-FR")"
+        />
         @if (expenseHistory?.Any() == true)
         {
             <MudList T="object">
