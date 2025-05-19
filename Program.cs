@@ -78,6 +78,11 @@ builder.Services.AddScoped<ITreatmentService, TreatmentService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<IWeightService, WeightService>();
 builder.Services.AddScoped<ContactService>();
+builder.Services.AddScoped<BlobStorageService>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    return new BlobStorageService(configuration);
+});
 
 builder.Services.AddQuartz(q =>
 {

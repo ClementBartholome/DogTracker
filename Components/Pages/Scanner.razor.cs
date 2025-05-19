@@ -4,6 +4,7 @@ using System.IO;
 using DogTracker.Components.Dialog;
 using DogTracker.Enums;
 using DogTracker.Models;
+using DogTracker.Services;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 
@@ -11,71 +12,53 @@ namespace DogTracker.Components.Pages
 {
     public partial class Scanner : ComponentBase, IAsyncDisposable
     {
-        private bool isCaptureMode = false;
+        private bool isCaptureMode;
         private string? previewImage;
-        private List<GedFile> scannedFiles = new();
+        private List<GedFile> scannedFiles = [];
         private bool _open;
         private Anchor _anchor;
-        private bool _overlayAutoClose = true;
+        private readonly bool _overlayAutoClose = true;
         private bool _showCategoryDialog;
         private TypeFilesEnum _selectedCategory;
         private string _selectedDocumentName;
         private TypeFilesEnum _filterCategory ;
-        private bool hasFlash = false;
-        private bool flashEnabled = false;
-        
-        
-        IList<IBrowserFile> _files = new List<IBrowserFile>();
+        private bool hasFlash;
+        private bool flashEnabled;
+
+
+        private readonly List<IBrowserFile> _files = [];
         [Inject] private IDialogService DialogService { get; set; } = null!;
         [Inject] private IJSRuntime JsRuntime { get; set; } = null!;
         [Inject] private IWebHostEnvironment Environment { get; set; } = null!;
         [Inject] private ISnackbar Snackbar { get; set; } = null!;
         [Parameter] public int DogId { get; set; }
+        [Inject] private BlobStorageService BlobStorageService { get; set; } = null!;
+
 
         protected override async Task OnInitializedAsync()
         {
             await LoadExistingFiles();
         }
 
-        private Task LoadExistingFiles()
+        private async Task LoadExistingFiles()
         {
-            var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", DogId.ToString());
-            if (Directory.Exists(uploadsPath))
-            {
-                var files = new List<GedFile>();
-        
-                files.AddRange(Directory.GetFiles(uploadsPath, "scan-*.jpg")
-                    .Select(f => new GedFile
-                    {
-                        PreviewUrl = $"/uploads/{DogId}/{Path.GetFileName(f)}",
-                        DownloadUrl = $"/uploads/{DogId}/{Path.GetFileName(f)}",
-                        Category = Enum.Parse<TypeFilesEnum>(GetCategoryFromFileName(Path.GetFileName(f))),
-                        CreatedAt = File.GetCreationTime(f),
-                        Name = GetNameFromFileName(Path.GetFileName(f))
-                    }));
-        
-                files.AddRange(Directory.GetFiles(uploadsPath, "upload-*")
-                    .Select(f => {
-                        var fileName = Path.GetFileName(f);
-                        var fileExt = Path.GetExtension(f).ToLowerInvariant();
-                        var isImage = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" }.Contains(fileExt);
-                
-                        return new GedFile
-                        {
-                            PreviewUrl = isImage 
-                                ? $"/uploads/{DogId}/{fileName}" 
-                                : GetIconForFileType(fileExt),
-                            DownloadUrl = $"/uploads/{DogId}/{fileName}",
-                            Category = Enum.Parse<TypeFilesEnum>(GetCategoryFromFileName(fileName)),
-                            CreatedAt = File.GetCreationTime(f),
-                            Name = GetNameFromFileName(fileName)
-                        };
-                    }));
-        
-                scannedFiles = files.OrderByDescending(f => f.CreatedAt).ToList();
-            }
+            var containerName = $"dog-{DogId}";
+            var containerClient = BlobStorageService.GetContainerClient(containerName);
 
-            return Task.CompletedTask;
+            if (await containerClient.ExistsAsync())
+            {
+                scannedFiles = containerClient.GetBlobs()
+                    .Select(blob => new GedFile
+                    {
+                        Name = GetNameFromFileName(blob.Name),
+                        PreviewUrl = containerClient.GetBlobClient(blob.Name).Uri.ToString(),
+                        DownloadUrl = containerClient.GetBlobClient(blob.Name).Uri.ToString(),
+                        CreatedAt = blob.Properties.CreatedOn?.DateTime ?? DateTime.Now,
+                        Category = Enum.Parse<TypeFilesEnum>(GetCategoryFromFileName(blob.Name))
+                    })
+                    .OrderByDescending(f => f.CreatedAt)
+                    .ToList();
+            }
         }
 
         private string GetIconForFileType(string extension)
@@ -91,13 +74,14 @@ namespace DogTracker.Components.Pages
         private string GetCategoryFromFileName(string fileName)
         {
             var parts = fileName.Split('-');
-            return parts.Length >= 4 ? parts[2] : "Divers";
+            return parts.Length >= 6 ? parts[7] : "Divers";
         }
         
         private string GetNameFromFileName(string fileName)
         {
             var parts = fileName.Split('-');
-            return parts.Length >= 4 ? parts[1] : fileName;
+            // Format : [GUID]-scan-[Nom]-[Catégorie]-[Date].jpg
+            return parts.Length >= 5 ? parts[6] : fileName;
         }
 
         private async Task StartScanning()
@@ -155,37 +139,32 @@ namespace DogTracker.Components.Pages
 
         private async Task SaveScan()
         {
-            if (string.IsNullOrEmpty(previewImage) || _selectedCategory == null || string.IsNullOrEmpty(_selectedDocumentName))
+            if (string.IsNullOrEmpty(previewImage) || string.IsNullOrEmpty(_selectedDocumentName))
                 return;
 
             var base64Data = previewImage.Split(',')[1];
             var imageBytes = Convert.FromBase64String(base64Data);
 
-            var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", DogId.ToString());
-            Directory.CreateDirectory(uploadsPath);
-
+            var containerName = $"dog-{DogId}";
             var fileName = $"scan-{_selectedDocumentName}-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}.jpg";
-            var filePath = Path.Combine(uploadsPath, fileName);
 
-            await File.WriteAllBytesAsync(filePath, imageBytes);
+            using var stream = new MemoryStream(imageBytes);
+            var blobUrl = await BlobStorageService.UploadFileAsync(new BrowserFileWrapper(stream, fileName), containerName);
 
-            var newFile = new GedFile
+            scannedFiles.Insert(0, new GedFile
             {
                 Name = _selectedDocumentName,
-                PreviewUrl = $"/uploads/{DogId}/{fileName}",
-                DownloadUrl = $"/uploads/{DogId}/{fileName}",
+                PreviewUrl = blobUrl,
+                DownloadUrl = blobUrl,
                 Category = _selectedCategory,
                 CreatedAt = DateTime.Now
-            };
+            });
 
-            scannedFiles.Insert(0, newFile);
-    
             Snackbar.Add("Document enregistré avec succès", Severity.Success);
 
             previewImage = null;
             isCaptureMode = false;
             _selectedDocumentName = null;
-            await StopCamera();
         }
 
         private async Task UploadFiles(IBrowserFile file)
@@ -231,11 +210,10 @@ namespace DogTracker.Components.Pages
                     _ => "/images/icons/file-icon.png"
                 };
         
-                // You might need to create these icon images or use Material Icons
                 previewImage = iconPath;
             }
     
-            isCaptureMode = true; // Switch to preview mode
+            isCaptureMode = true;
         }
         
         private async Task OpenCategoryDialogForUpload()
@@ -265,7 +243,7 @@ namespace DogTracker.Components.Pages
         
         private async Task SaveUploadedFile()
         {
-            if (_files.Count == 0 || _selectedCategory == null || string.IsNullOrEmpty(_selectedDocumentName))
+            if (_files.Count == 0 || string.IsNullOrEmpty(_selectedDocumentName))
                 return;
     
             var file = _files[0];
@@ -278,9 +256,9 @@ namespace DogTracker.Components.Pages
     
             var fileName = $"upload-{_selectedDocumentName}-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}{extension}";
             var filePath = Path.Combine(uploadsPath, fileName);
-    
-            using (var stream = file.OpenReadStream(maxAllowedSize: 10485760)) // 10MB
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+
+            await using (var stream = file.OpenReadStream(maxAllowedSize: 10485760)) // 10MB
+            await using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await stream.CopyToAsync(fileStream);
             }
@@ -318,6 +296,34 @@ namespace DogTracker.Components.Pages
             _files.Clear();
             CloseDrawer();
         }
+        
+        private async Task DeleteFile(GedFile file)
+        {
+            var parameters = new DialogParameters
+            {
+                { "ContentText", "Êtes-vous sûr de vouloir supprimer ce document ?" },
+                { "ButtonText", "Supprimer" },
+                { "Color", Color.Error }
+            };
+
+            var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+            var dialog = DialogService.Show<Dialog.Dialog>("Confirmation", parameters, options);
+            var result = await dialog.Result;
+
+            if (result is not { Canceled: true })
+            {
+                try
+                {
+                    await BlobStorageService.DeleteFileAsync(file.DownloadUrl);
+                    scannedFiles.Remove(file);
+                    Snackbar.Add("Document supprimé", Severity.Success);
+                }
+                catch (Exception ex)
+                {
+                    Snackbar.Add($"Erreur lors de la suppression : {ex.Message}", Severity.Error);
+                }
+            }
+        }
 
         private async Task RetakePhoto()
         {
@@ -341,42 +347,6 @@ namespace DogTracker.Components.Pages
         public async ValueTask DisposeAsync()
         {
             await StopCamera();
-        }
-
-        private async Task DeleteFile(GedFile file)
-        {
-            var parameters = new DialogParameters
-            {
-                { "ContentText", "Êtes-vous sûr de vouloir supprimer ce document ?" },
-                { "ButtonText", "Supprimer" },
-                { "Color", Color.Error }
-            };
-
-            var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
-            var dialog = DialogService.Show<Dialog.Dialog>("Confirmation", parameters, options);
-            var result = await dialog.Result;
-
-            if (!result.Canceled)
-            {
-                try
-                {
-                    var fileName = Path.GetFileName(file.PreviewUrl);
-                    var filePath = Path.Combine(Environment.WebRootPath, "uploads", DogId.ToString(), fileName);
-
-                    if (File.Exists(filePath))
-                    {
-                        File.Delete(filePath);
-                        scannedFiles.Remove(file);
-                        Snackbar.Add("Document supprimé", Severity.Success);
-                        StateHasChanged();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Snackbar.Add("Erreur lors de la suppression", Severity.Error);
-                    Console.Error.WriteLine($"Erreur lors de la suppression du fichier : {ex.Message}");
-                }
-            }
         }
         
         private void OpenDrawer(Anchor anchor)
