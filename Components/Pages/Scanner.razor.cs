@@ -137,36 +137,6 @@ namespace DogTracker.Components.Pages
             DialogService.ShowAsync<FilePreviewDialog>("Aperçu du document", parameters, options);
         }
 
-        private async Task SaveScan()
-        {
-            if (string.IsNullOrEmpty(previewImage) || string.IsNullOrEmpty(_selectedDocumentName))
-                return;
-
-            var base64Data = previewImage.Split(',')[1];
-            var imageBytes = Convert.FromBase64String(base64Data);
-
-            var containerName = $"dog-{DogId}";
-            var fileName = $"scan-{_selectedDocumentName}-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}.jpg";
-
-            using var stream = new MemoryStream(imageBytes);
-            var blobUrl = await BlobStorageService.UploadFileAsync(new BrowserFileWrapper(stream, fileName), containerName);
-
-            scannedFiles.Insert(0, new GedFile
-            {
-                Name = _selectedDocumentName,
-                PreviewUrl = blobUrl,
-                DownloadUrl = blobUrl,
-                Category = _selectedCategory,
-                CreatedAt = DateTime.Now
-            });
-
-            Snackbar.Add("Document enregistré avec succès", Severity.Success);
-
-            previewImage = null;
-            isCaptureMode = false;
-            _selectedDocumentName = null;
-        }
-
         private async Task UploadFiles(IBrowserFile file)
         {
             try
@@ -241,33 +211,57 @@ namespace DogTracker.Components.Pages
             }
         }
         
+        private async Task SaveScan()
+        {
+            if (string.IsNullOrEmpty(previewImage) || string.IsNullOrEmpty(_selectedDocumentName))
+                return;
+
+            var base64Data = previewImage.Split(',')[1];
+            var imageBytes = Convert.FromBase64String(base64Data);
+
+            var containerName = $"dog-{DogId}";
+            var fileName = $"scan-{_selectedDocumentName}-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}.jpg";
+
+            using var stream = new MemoryStream(imageBytes);
+            var blobUrl = await BlobStorageService.UploadFileAsync(new BrowserFileWrapper(stream, fileName), containerName);
+
+            scannedFiles.Insert(0, new GedFile
+            {
+                Name = _selectedDocumentName,
+                PreviewUrl = blobUrl,
+                DownloadUrl = blobUrl,
+                Category = _selectedCategory,
+                CreatedAt = DateTime.Now
+            });
+
+            Snackbar.Add("Document enregistré avec succès", Severity.Success);
+
+            previewImage = null;
+            isCaptureMode = false;
+            _selectedDocumentName = null;
+        }
+        
         private async Task SaveUploadedFile()
         {
             if (_files.Count == 0 || string.IsNullOrEmpty(_selectedDocumentName))
                 return;
-    
+
             var file = _files[0];
             var extension = Path.GetExtension(file.Name);
             if (string.IsNullOrEmpty(extension))
                 extension = ".bin";
-    
-            var uploadsPath = Path.Combine(Environment.WebRootPath, "uploads", DogId.ToString());
-            Directory.CreateDirectory(uploadsPath);
-    
-            var fileName = $"upload-{_selectedDocumentName}-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}{extension}";
-            var filePath = Path.Combine(uploadsPath, fileName);
 
-            await using (var stream = file.OpenReadStream(maxAllowedSize: 10485760)) // 10MB
-            await using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await stream.CopyToAsync(fileStream);
-            }
-    
-            // Create thumbnail for non-image files
-            string previewUrl = $"/uploads/{DogId}/{fileName}";
+            var containerName = $"dog-{DogId}";
+            var fileName = $"upload-{_selectedDocumentName}-{_selectedCategory}-{DateTime.Now:yyyyMMddHHmmss}{extension}";
+
+            // Upload the file to Blob Storage
+            await using var stream = file.OpenReadStream(maxAllowedSize: 10485760); // 10MB max
+            var blobUrl = await BlobStorageService.UploadFileAsync(new BrowserFileWrapper(stream, fileName), containerName);
+
+            // Determine the preview URL for non-image files
+            string previewUrl = blobUrl;
             if (!file.ContentType.StartsWith("image/"))
             {
-                // For non-image files, use a generic preview based on file type
                 previewUrl = file.ContentType switch
                 {
                     "application/pdf" => "/images/icons/pdf-preview.png",
@@ -276,20 +270,20 @@ namespace DogTracker.Components.Pages
                     _ => "/images/icons/file-preview.png"
                 };
             }
-    
+
             var newFile = new GedFile
             {
                 Name = _selectedDocumentName,
                 PreviewUrl = previewUrl,
-                DownloadUrl = $"/uploads/{DogId}/{fileName}",
+                DownloadUrl = blobUrl,
                 Category = _selectedCategory,
                 CreatedAt = DateTime.Now
             };
-    
+
             scannedFiles.Insert(0, newFile);
-    
+
             Snackbar.Add("Document téléchargé avec succès", Severity.Success);
-    
+
             previewImage = null;
             _selectedDocumentName = null;
             isCaptureMode = false;

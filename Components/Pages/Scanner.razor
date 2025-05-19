@@ -71,9 +71,16 @@
                 {
                     @foreach (var file in filesToShow)
                     {
-                        <MudItem xs="12" sm="6" md="4">
-                            <MudCard Elevation="2">
-                                <MudCardMedia Image="@file.PreviewUrl" Height="300"/>
+                        <MudItem xs="6" sm="6" md="4">
+                            <MudCard Elevation="2" Style="width: 100%">
+                                    @if (file.PreviewUrl.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <MudIcon Style="height: 200px; align-self: center" Icon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Large" Color="Color.Error" />
+                                    }
+                                    else
+                                    {
+                                        <MudCardMedia Image="@file.PreviewUrl" Alt="Preview" Height="200" />
+                                    }
                                 <MudCardContent>
                                     <MudChip T="TypeFilesEnum" Size="Size.Small"
                                              Color="@GetChipColor(file.Category)"
@@ -82,29 +89,28 @@
                                         @(string.IsNullOrEmpty(file.Name) ? "Document sans nom" : file.Name)
                                     </MudText>
                                     <MudText Typo="Typo.body2" Class="mt-2">
-                                        Ajouté le @file.CreatedAt.ToString("dd/MM/yyyy à HH:mm")
+                                        @file.CreatedAt.ToString("dd/MM/yyyy à HH:mm")
                                     </MudText>
                                 </MudCardContent>
-                                <MudCardActions class="flex-wrap">
-                                    <MudButton Variant="Variant.Text"
-                                               Color="Color.Secondary"
-                                               OnClick="() => OpenPreviewDialog(file)"
-                                               StartIcon="@Icons.Material.Filled.Visibility">
-                                        Voir
-                                    </MudButton>
-                                    <MudButton Variant="Variant.Text"
-                                               Color="Color.Primary"
-                                               Href="@file.DownloadUrl"
-                                               Download
-                                               StartIcon="@Icons.Material.Filled.Download">
-                                        Télécharger
-                                    </MudButton>
-                                    <MudButton Variant="Variant.Text"
-                                               Color="Color.Error"
-                                               OnClick="() => DeleteFile(file)"
-                                               StartIcon="@Icons.Material.Filled.Delete">
-                                        Supprimer
-                                    </MudButton>
+                                <MudCardActions Class="justify-content-around">
+                                    @if (file.PreviewUrl.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <MudIconButton Variant="Variant.Text"
+                                                       Color="Color.Secondary"
+                                                       OnClick="() => OpenPreviewDialog(file)"
+                                                       Icon="@Icons.Material.Filled.Visibility">
+                                        </MudIconButton>
+                                    }
+                                    <MudIconButton Variant="Variant.Text"
+                                                   Color="Color.Primary"
+                                                   Href="@file.DownloadUrl"
+                                                   Icon="@Icons.Material.Filled.Download">
+                                    </MudIconButton>
+                                    <MudIconButton Variant="Variant.Text"
+                                                   Color="Color.Error"
+                                                   OnClick="() => DeleteFile(file)"
+                                                   Icon="@Icons.Material.Filled.Delete">
+                                    </MudIconButton>
                                 </MudCardActions>
                             </MudCard>
                         </MudItem>
