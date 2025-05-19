@@ -1,6 +1,6 @@
-# DogTracker
+# MonToutou
 
-DogTracker est une application pensée pour les propriétaires de chiens souhaitant organiser et suivre facilement tous les aspects de la vie de leur compagnon à quatre pattes.
+MonToutou est une application pensée pour les propriétaires de chiens souhaitant organiser et suivre facilement tous les aspects de la vie de leur compagnon à quatre pattes.
 
 ## Fonctionnalités principales
 
